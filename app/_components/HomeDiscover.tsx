@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { memo, useDeferredValue, useMemo, useState, type ChangeEvent } from "react";
+import { memo, useDeferredValue, useMemo, useState } from "react";
 import { Card } from "@/components/card/Card";
 import { Empty } from "@/components/empty/Empty";
 import { Icon } from "@/components/icon/Icon";
@@ -39,56 +39,55 @@ export function HomeDiscover() {
         : places,
     [places, deferredKeyword],
   );
-  const searchProps = {
-    label: "맛집 검색",
-    hideLabel: true,
-    shape: "pill",
-    tone: "brand",
-    type: "text",
-    inputMode: "search",
-    leadingIcon: "search",
-    placeholder: "숨은맛집은 Foood에서",
-    value: query,
-    onChange: (event: ChangeEvent<HTMLInputElement>) => setQuery(event.target.value),
-  } as const;
 
   return (
     <>
-      <header
-        className={cn(
-          gridContainer,
-          // 워드마크 오른쪽에 검색을 한 줄로 둔다. 모바일 · 태블릿은 검색이 남은 폭을 꽉 채운다
-          "flex items-center gap-[var(--spacing-16)] pt-[var(--spacing-16)] pb-[var(--spacing-20)]",
-          // 데스크톱: 검색은 한 단계 작은 md · 최대 448, 오른쪽 끝에 마이 아이콘
-          "lg:gap-[var(--spacing-24)] lg:py-[var(--spacing-16)]",
-        )}
-      >
-        <div className="flex h-[31px] shrink-0 items-center">
-          <h1>
-            <Image src="/brand/wordmark.png" alt="FOOOD" width={238} height={96} priority className="h-7 w-auto" />
-          </h1>
-        </div>
-        {/* TextField size는 반응형 prop이 없어 모바일(lg)·데스크톱(md) 인스턴스를 CSS로 전환한다.
-            cn은 클래스 충돌을 정리하지 않으므로 컴포넌트 기본 display와 겹치지 않게 감싼 요소에서 숨긴다 */}
-        <div className="min-w-0 flex-1 lg:hidden">
-          <TextField {...searchProps} size="lg" />
-        </div>
-        <div className="hidden w-full min-w-0 max-w-md lg:block">
-          <TextField {...searchProps} size="md" />
-        </div>
-        <div className="ml-auto hidden shrink-0 lg:block">
-          <Link
-            href="/my"
-            aria-label="마이페이지"
-            className="inline-flex h-12 items-center gap-1 rounded-full px-3 text-[var(--color-text-default)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-border-brand)]"
-          >
-            <Icon name="user-round" size={24} />
-            <Text variant="label-md" as="span">
-              마이
-            </Text>
-          </Link>
-        </div>
-      </header>
+      {/* 스크롤해도 워드마크 · 검색 줄은 위에 고정하고 아래 피드만 올라간다. 배경을 화면 전체 폭으로 깔아 1280 밖에서도 피드가 비치지 않게 한다 */}
+      <div className="sticky top-0 z-10 bg-[var(--color-background-default)]">
+        <header
+          className={cn(
+            gridContainer,
+            // 워드마크 오른쪽에 검색을 한 줄로 둔다. 모바일 · 태블릿은 검색이 남은 폭을 꽉 채운다
+            "flex items-center gap-[var(--spacing-16)] pt-[var(--spacing-16)] pb-[var(--spacing-20)]",
+            // 데스크톱: 검색은 최대 448, 오른쪽 끝에 마이 아이콘
+            "lg:gap-[var(--spacing-24)] lg:py-[var(--spacing-16)]",
+          )}
+        >
+          <div className="flex h-[31px] shrink-0 items-center">
+            <h1>
+              <Image src="/brand/wordmark.png" alt="FOOOD" width={238} height={96} priority className="h-7 w-auto" />
+            </h1>
+          </div>
+          {/* 검색 높이 40(md). 모바일 · 태블릿은 남은 폭을 꽉 채우고, 데스크톱은 최대 448 */}
+          <div className="min-w-0 flex-1 lg:max-w-md">
+            <TextField
+              label="맛집 검색"
+              hideLabel
+              size="md"
+              shape="pill"
+              tone="brand"
+              type="text"
+              inputMode="search"
+              leadingIcon="search"
+              placeholder="숨은맛집은 Foood에서"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+            />
+          </div>
+          <div className="ml-auto hidden shrink-0 lg:block">
+            <Link
+              href="/my"
+              aria-label="마이페이지"
+              className="inline-flex h-12 items-center gap-1 rounded-full px-3 text-[var(--color-text-default)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-border-brand)]"
+            >
+              <Icon name="user-round" size={24} />
+              <Text variant="label-md" as="span">
+                마이
+              </Text>
+            </Link>
+          </div>
+        </header>
+      </div>
 
       <main
         className={cn(
