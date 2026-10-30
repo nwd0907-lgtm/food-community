@@ -9,7 +9,7 @@ export const metadata: Metadata = { title: "마이페이지" };
 
 export default function MyPage() {
   return (
-    <div className="flex flex-1 flex-col pb-14 lg:pb-0">
+    <div className="flex flex-1 flex-col pb-[calc(56px+var(--app-install-banner-height))] lg:pb-0">
       <AppTopNavigation
         title="마이페이지"
         rightActions={[{ label: "프로필 설정", icon: "settings", href: "/my/profile" }]}

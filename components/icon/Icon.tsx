@@ -64,8 +64,10 @@ import {
   RefreshCw,
   Search,
   Settings,
+  Share,
   Share2,
   Signal,
+  SquarePlus,
   Star,
   Trash2,
   TriangleAlert,
@@ -132,6 +134,9 @@ export const icons = {
   navigation: Navigation,
   "circle-alert": CircleAlert,
   camera: Camera,
+  // iOS 홈 화면 추가 안내: Safari 공유 버튼 · '홈 화면에 추가' 메뉴 아이콘
+  "share-ios": Share,
+  "square-plus": SquarePlus,
 } as const;
 
 export type IconName = keyof typeof icons;

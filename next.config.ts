@@ -11,6 +11,18 @@ const nextConfig: NextConfig = {
       new URL("https://lh3.googleusercontent.com/**"),
     ],
   },
+  // 서비스 워커는 항상 최신본을 받도록 캐시하지 않는다
+  async headers() {
+    return [
+      {
+        source: "/sw.js",
+        headers: [
+          { key: "Content-Type", value: "application/javascript; charset=utf-8" },
+          { key: "Cache-Control", value: "no-cache, no-store, must-revalidate" },
+        ],
+      },
+    ];
+  },
   turbopack: {
     rules: {
       "*.css": {

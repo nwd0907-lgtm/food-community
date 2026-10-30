@@ -1,6 +1,11 @@
 @import "tailwindcss";
 @import "./tokens.css";
 
+/* 설치 띠배너가 보일 때 AppInstallBanner가 64px로 바꾼다. 바텀 내비 위 여백 · FAB 위치 계산에 쓴다 */
+:root {
+  --app-install-banner-height: 0px;
+}
+
 @layer base {
   html,
   body {

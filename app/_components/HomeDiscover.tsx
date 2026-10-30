@@ -132,8 +132,8 @@ export function HomeDiscover() {
         onClick={() => router.push("/restaurants/new")}
         className={cn(
           "fixed z-20 shadow-[0_4px_12px_color-mix(in_srgb,var(--color-background-strong)_16%,transparent)]",
-          // 바텀 내비(56) 위 32(데스크톱은 바텀 내비가 없어 바닥에서 32), 넓은 화면에서는 1280 컨테이너 안쪽 오른쪽 끝에 맞춘다
-          "bottom-[calc(56px+var(--spacing-32))] lg:bottom-[var(--spacing-32)] right-[max(var(--spacing-16),calc((100vw-1280px)/2+var(--spacing-32)))]",
+          // 바텀 내비(56) · 설치 띠배너 위 32(데스크톱은 바텀 내비가 없어 바닥에서 32), 넓은 화면에서는 1280 컨테이너 안쪽 오른쪽 끝에 맞춘다
+          "bottom-[calc(56px+var(--app-install-banner-height)+var(--spacing-32))] lg:bottom-[var(--spacing-32)] right-[max(var(--spacing-16),calc((100vw-1280px)/2+var(--spacing-32)))]",
         )}
       />
     </>
