@@ -1,8 +1,9 @@
-// PWA 아이콘 · 파비콘 · iOS 스플래시 · 헤더 워드마크 생성: npm run pwa:assets
-// 원본: assets/brand/logo.png(F 심볼), assets/brand/logo-wordmark.png(Foood 워드마크)
+// PWA 아이콘 · 파비콘 · 헤더 워드마크 · 로그인/스플래시 배경 사진 생성: npm run pwa:assets
+// 원본: assets/brand/logo.png(F 심볼), assets/brand/logo-wordmark.png(Foood 워드마크), public/images/walk.jpeg(배경 사진)
+// iOS 시작 이미지는 화면을 캡처해 만든다: npm run pwa:splash (scripts/generate-splash-screens.mjs)
 import { mkdir, writeFile } from "node:fs/promises";
 import sharp from "sharp";
-import { iconBackground, splashBackground, splashImageUrl, splashScreens } from "../lib/pwa.ts";
+import { heroImageUrl, iconBackground, wordmarkUrl } from "../lib/pwa.ts";
 
 const hexToRgb = (hex) => {
   const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
@@ -10,7 +11,6 @@ const hexToRgb = (hex) => {
 };
 const SOURCE_BG = { r: 232, g: 222, b: 208 }; // 원본 로고 파일의 베이지 배경(#E8DED0). 심볼 추출에만 쓴다
 const BG = hexToRgb(iconBackground);
-const SPLASH_BG = hexToRgb(splashBackground);
 const MARK = { r: 135, g: 16, b: 26 }; // 로고 심볼색 #87101A
 
 /** 베이지 배경을 걷어내고 심볼만 투명 PNG로 추출. 초록 채널 차이로 안티앨리어싱 알파를 복원한다 */
@@ -60,14 +60,13 @@ function toIco(pngs) {
 
 async function main() {
   await mkdir("public/icons", { recursive: true });
-  await mkdir("public/splash", { recursive: true });
   await mkdir("public/brand", { recursive: true });
 
   const mark = await extractMark("assets/brand/logo.png", { left: 395, top: 205, width: 470, height: 826 });
   const wordmark = await extractMark("assets/brand/logo-wordmark.png", { left: 330, top: 207, width: 1112, height: 472 });
 
   // 헤더 워드마크: 배경 없는 투명 PNG, 여백을 걷어내고 높이 96(표시 높이 32의 3배)
-  await sharp(wordmark).trim().resize({ height: 96 }).png().toFile("public/brand/wordmark.png");
+  await sharp(wordmark).trim().resize({ height: 96 }).png().toFile(`public${wordmarkUrl}`);
 
   // 매니페스트 아이콘: any는 투명 배경 · 심볼 80%, maskable은 마스크로 잘리므로 흰 배경 · 안전 영역(지름 80%) 안에 들도록 52%
   await writeFile("public/icons/icon-192.png", await composeIcon(mark, 192, 0.8, { transparent: true }));
@@ -84,16 +83,8 @@ async function main() {
   await writeFile("app/favicon.ico", toIco(favicons));
   await writeFile("app/icon.png", await composeIcon(mark, 96, 0.96, { transparent: true }));
 
-  // iOS 스플래시: 흰 배경 + 중앙 F 심볼(높이 = 화면 짧은 변의 28%). 안드로이드 스플래시(흰 배경 + 앱 아이콘)와 맞춘다
-  for (const screen of splashScreens) {
-    const w = screen.width * screen.dpr;
-    const h = screen.height * screen.dpr;
-    const logo = await sharp(mark).resize({ height: Math.round(Math.min(w, h) * 0.28) }).toBuffer();
-    await sharp({ create: { width: w, height: h, channels: 4, background: { ...SPLASH_BG, alpha: 1 } } })
-      .composite([{ input: logo, gravity: "center" }])
-      .png({ compressionLevel: 9, palette: true })
-      .toFile(`public${splashImageUrl(screen)}`);
-  }
+  // 로그인 · 스플래시 배경 사진: 스플래시가 첫 화면에 바로 그려지도록 가볍게(원본 400KB → WebP)
+  await sharp("public/images/walk.jpeg").webp({ quality: 70 }).toFile(`public${heroImageUrl}`);
 }
 
 await main();

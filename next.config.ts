@@ -23,6 +23,12 @@ const nextConfig: NextConfig = {
           { key: "Cache-Control", value: "no-cache, no-store, must-revalidate" },
         ],
       },
+      // 로그인 · 스플래시 사진과 워드마크: 앱을 켤 때마다 서버에 다시 묻지 않고 기기 캐시로 바로 그린다 (lib/pwa)
+      // 7일 지나면 다시 확인한다. 바로 바꿔야 하면 파일 이름을 바꾼다
+      {
+        source: "/brand/:file*",
+        headers: [{ key: "Cache-Control", value: "public, max-age=604800, stale-while-revalidate=2592000" }],
+      },
     ];
   },
   turbopack: {

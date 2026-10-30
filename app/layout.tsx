@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { appThemeColor, splashImageUrl, splashScreens } from "@/lib/pwa";
 import { AppSplash, splashScript } from "./_components/AppSplash";
+import { loginRedirectScript } from "./_components/loginRedirect";
 import { ServiceWorkerRegister } from "./_components/ServiceWorkerRegister";
 import { pretendard } from "./fonts";
 import "./globals.css";
@@ -31,6 +32,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     // splashScript가 하이드레이션 전에 <html> 클래스를 바꾸므로 그 불일치 경고만 끈다
     <html lang="ko" className={`${pretendard.variable} h-full antialiased`} suppressHydrationWarning>
       <head>
+        <script dangerouslySetInnerHTML={{ __html: loginRedirectScript }} />
         <script dangerouslySetInnerHTML={{ __html: splashScript }} />
       </head>
       <body className="font-pretendard min-h-full flex flex-col">
