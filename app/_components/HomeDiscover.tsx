@@ -56,7 +56,8 @@ export function HomeDiscover() {
       <header
         className={cn(
           gridContainer,
-          "flex flex-col gap-[var(--spacing-16)] pt-[var(--spacing-8)] pb-[var(--spacing-20)]",
+          // 모바일: 워드마크 위 여백을 아래 간격(검색창까지 16)과 같게 둔다
+          "flex flex-col gap-[var(--spacing-16)] pt-[var(--spacing-16)] pb-[var(--spacing-20)]",
           // 데스크톱: 워드마크 · 검색(한 단계 작은 md, 최대 448) · 마이 아이콘을 한 줄에 둔다
           "lg:flex-row lg:items-center lg:gap-[var(--spacing-24)] lg:py-[var(--spacing-16)]",
         )}
