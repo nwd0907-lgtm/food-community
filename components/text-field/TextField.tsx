@@ -10,6 +10,7 @@ import {
   helperColor,
   resolveFieldState,
   type FieldSize,
+  type FieldTone,
 } from "../field/field";
 import { Icon, type IconName } from "../icon/Icon";
 import { Text } from "../typography/Text";
@@ -33,6 +34,8 @@ export type TextFieldProps = {
   hideLabel?: boolean;
   /** pill: 완전한 라운드(검색 필드) */
   shape?: "default" | "pill";
+  /** brand: 테두리(2px) · 아이콘을 브랜드색으로 (메인 검색) */
+  tone?: FieldTone;
   /** 포커스 스타일 강제 표시(문서·시안 비교용). 실제 포커스 시에는 자동 적용 */
   focused?: boolean;
 } & Omit<InputHTMLAttributes<HTMLInputElement>, "size" | "type">;
@@ -49,6 +52,7 @@ export function TextField({
   trailingIconLabel,
   hideLabel,
   shape = "default",
+  tone = "default",
   focused,
   required,
   disabled,
@@ -61,7 +65,12 @@ export function TextField({
   const helperId = `${inputId}-helper`;
   const state = resolveFieldState({ disabled, error: !!errorMessage, focused });
   const helper = errorMessage ?? helperText;
-  const iconColor = state === "disabled" ? "text-[var(--color-text-disabled)]" : "text-[var(--color-text-default)]";
+  const iconColor =
+    state === "disabled"
+      ? "text-[var(--color-text-disabled)]"
+      : tone === "brand" && state !== "error"
+        ? "text-[var(--color-text-brand)]"
+        : "text-[var(--color-text-default)]";
 
   return (
     <div className={cn("flex w-full flex-col gap-1.5", className)}>
@@ -77,7 +86,7 @@ export function TextField({
         className={cn(
           "flex items-center gap-2 px-3",
           shape === "pill" ? cn(fieldHeightClasses[size], "rounded-full") : fieldSizeClasses[size],
-          fieldBoxClasses(state),
+          fieldBoxClasses(state, tone),
         )}
       >
         {leadingIcon && <Icon name={leadingIcon} size={fieldIconSize[size]} className={iconColor} />}

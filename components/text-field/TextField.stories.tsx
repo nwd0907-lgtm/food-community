@@ -133,3 +133,12 @@ export const Search: Story = {
     await expect(getComputedStyle(canvas.getByRole("textbox").parentElement!).borderRadius).not.toBe("12px");
   },
 };
+
+/** 메인 검색(브랜드): 테두리 2px · 검색 아이콘을 브랜드 버튼과 같은 색으로 */
+export const SearchBrand: Story = {
+  args: { ...Search.args, tone: "brand" },
+  play: async ({ canvas }) => {
+    const box = canvas.getByRole("textbox").parentElement!;
+    await expect(getComputedStyle(box).boxShadow).toContain("2px");
+  },
+};

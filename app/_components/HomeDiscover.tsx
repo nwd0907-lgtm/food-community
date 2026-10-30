@@ -43,6 +43,7 @@ export function HomeDiscover() {
     label: "맛집 검색",
     hideLabel: true,
     shape: "pill",
+    tone: "brand",
     type: "text",
     inputMode: "search",
     leadingIcon: "search",
@@ -56,10 +57,10 @@ export function HomeDiscover() {
       <header
         className={cn(
           gridContainer,
-          // 모바일: 워드마크 위 여백을 아래 간격(검색창까지 16)과 같게 둔다
-          "flex flex-col gap-[var(--spacing-16)] pt-[var(--spacing-16)] pb-[var(--spacing-20)]",
-          // 데스크톱: 워드마크 · 검색(한 단계 작은 md, 최대 448) · 마이 아이콘을 한 줄에 둔다
-          "lg:flex-row lg:items-center lg:gap-[var(--spacing-24)] lg:py-[var(--spacing-16)]",
+          // 워드마크 오른쪽에 검색을 한 줄로 둔다. 모바일 · 태블릿은 검색이 남은 폭을 꽉 채운다
+          "flex items-center gap-[var(--spacing-16)] pt-[var(--spacing-16)] pb-[var(--spacing-20)]",
+          // 데스크톱: 검색은 한 단계 작은 md · 최대 448, 오른쪽 끝에 마이 아이콘
+          "lg:gap-[var(--spacing-24)] lg:py-[var(--spacing-16)]",
         )}
       >
         <div className="flex h-[31px] shrink-0 items-center">
@@ -69,7 +70,9 @@ export function HomeDiscover() {
         </div>
         {/* TextField size는 반응형 prop이 없어 모바일(lg)·데스크톱(md) 인스턴스를 CSS로 전환한다.
             cn은 클래스 충돌을 정리하지 않으므로 컴포넌트 기본 display와 겹치지 않게 감싼 요소에서 숨긴다 */}
-        <TextField {...searchProps} size="lg" className="lg:hidden" />
+        <div className="min-w-0 flex-1 lg:hidden">
+          <TextField {...searchProps} size="lg" />
+        </div>
         <div className="hidden w-full min-w-0 max-w-md lg:block">
           <TextField {...searchProps} size="md" />
         </div>
