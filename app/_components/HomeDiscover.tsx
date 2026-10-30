@@ -47,10 +47,10 @@ export function HomeDiscover() {
         <header
           className={cn(
             gridContainer,
-            // 워드마크 오른쪽에 검색을 한 줄로 둔다. 모바일 · 태블릿은 검색이 남은 폭을 꽉 채운다
-            "flex items-center gap-[var(--spacing-16)] pt-[var(--spacing-16)] pb-[var(--spacing-20)]",
+            // 워드마크 오른쪽에 검색을 한 줄로 둔다. 모바일 · 태블릿은 검색이 남은 폭을 꽉 채운다. 위아래 8
+            "flex items-center gap-[var(--spacing-16)] py-[var(--spacing-8)]",
             // 데스크톱: 검색은 최대 448, 오른쪽 끝에 마이 아이콘
-            "lg:gap-[var(--spacing-24)] lg:py-[var(--spacing-16)]",
+            "lg:gap-[var(--spacing-24)]",
           )}
         >
           <div className="flex h-[31px] shrink-0 items-center">
@@ -92,7 +92,8 @@ export function HomeDiscover() {
       <main
         className={cn(
           gridContainer,
-          "flex flex-1 flex-col gap-[var(--spacing-20)] pt-[var(--spacing-8)] pb-[var(--spacing-24)]",
+          // 헤더 아래 8(헤더 py)에 바로 이어 피드 제목이 온다
+          "flex flex-1 flex-col gap-[var(--spacing-20)] pb-[var(--spacing-24)]",
         )}
       >
         <div className="pb-1">

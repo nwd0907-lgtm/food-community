@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card } from "@/components/card/Card";
 import { Empty } from "@/components/empty/Empty";
 import { IconButton } from "@/components/icon-button/IconButton";
@@ -15,18 +15,37 @@ import { Text } from "@/components/typography/Text";
 import type { PlaceSummary } from "@/lib/place";
 import { DEFAULT_AVATAR } from "@/lib/profile";
 import { clearBff } from "@/lib/bff";
+import { prepareHero } from "../_components/HeroReady";
 import { removePlaceFromCache, usePlaces } from "@/lib/usePlace";
 import { useProfile } from "@/lib/useProfile";
 
 // design.pen 07 마이페이지 · 내 기록: 프로필 요약(아바타 48 · 닉네임 · 이메일 · 로그아웃) · 탭(내 맛집 / 구매 내역 비활성) · 내 글 카드 그리드
 // 프로필 요약은 BFF GET /api/profile, 내 글은 GET /api/places?mine=1
 // 내 글 카드 우상단 X → 확인 모달 → DELETE /api/places/[id] (소프트 삭제) 후 목록에서 뺀다
+// 로그아웃: 서버 응답을 기다리지 않고 바로 로그인 화면으로 간다. 세션 종료(쿠키 삭제)는 뒤에서 끝난다.
+// 로그인 화면 · 배경 사진은 마이페이지가 한가할 때 미리 받아 두어 이동하자마자 다 그려진 채로 보인다
 export function MyPageContent() {
   const router = useRouter();
   const { profile } = useProfile();
   const { places } = usePlaces({ mine: true });
   const [deleting, setDeleting] = useState<PlaceSummary>();
   const [deleteError, setDeleteError] = useState<string>();
+  const [loggingOut, setLoggingOut] = useState(false);
+
+  useEffect(() => {
+    router.prefetch("/login");
+    const idle = window.requestIdleCallback ?? ((callback: () => void) => window.setTimeout(callback, 1000));
+    const cancel = window.cancelIdleCallback ?? window.clearTimeout;
+    const handle = idle(() => prepareHero());
+    return () => cancel(handle);
+  }, [router]);
+
+  const logout = () => {
+    setLoggingOut(true);
+    void fetch("/api/auth/logout", { method: "POST", keepalive: true });
+    clearBff();
+    router.replace("/login");
+  };
 
   const deletePlace = async () => {
     const target = deleting;
@@ -85,11 +104,8 @@ export function MyPageContent() {
           icon="logout"
           size="sm"
           className="mr-2 text-[var(--color-text-muted)]!"
-          onClick={async () => {
-            await fetch("/api/auth/logout", { method: "POST" });
-            clearBff();
-            router.replace("/login");
-          }}
+          disabled={loggingOut}
+          onClick={logout}
         />
       </section>
 
