@@ -1,0 +1,152 @@
+/* Design tokens — design.pen variables 기준. 이름은 디자인 변수명과 1:1로 맞춘다. */
+
+:root {
+  /* ── Primitive · Color ─────────────────────────────── */
+
+  /* Brand · 화덕 오렌지 */
+  --color-brand-50: #fff4ed;
+  --color-brand-100: #ffe5d3;
+  --color-brand-200: #ffc5a3;
+  --color-brand-300: #ffa172;
+  --color-brand-400: #ff7543;
+  --color-brand-500: #ff5a1f;
+  --color-brand-600: #e63f0c;
+  --color-brand-700: #bc2d09;
+  --color-brand-800: #94240e;
+  --color-brand-900: #78210f;
+  --color-brand-950: #410e05;
+
+  /* Neutral · 따뜻한 잉크 */
+  --color-neutral-50: #fbfaf7;
+  --color-neutral-100: #f5f2ec;
+  --color-neutral-200: #e9e4dc;
+  --color-neutral-300: #d6d0c6;
+  --color-neutral-400: #aaa49a;
+  --color-neutral-500: #817c73;
+  --color-neutral-600: #666159;
+  --color-neutral-700: #4b4741;
+  --color-neutral-800: #302e2a;
+  --color-neutral-900: #171714;
+  --color-neutral-950: #0d0d0b;
+
+  /* Warning · 라임 옐로 */
+  --color-lime-50: #fbfdeb;
+  --color-lime-100: #f3f9c9;
+  --color-lime-200: #e8f49c;
+  --color-lime-300: #ddf26a;
+  --color-lime-400: #c9dd42;
+  --color-lime-500: #a9be21;
+  --color-lime-600: #829714;
+  --color-lime-700: #627412;
+  --color-lime-800: #4f5c14;
+  --color-lime-900: #444e16;
+  --color-lime-950: #242b09;
+
+  /* Success · 허브 그린 */
+  --color-green-50: #f6f9ec;
+  --color-green-100: #eaf2d3;
+  --color-green-200: #d4e6a8;
+  --color-green-300: #b8d474;
+  --color-green-400: #94bd42;
+  --color-green-500: #719b26;
+  --color-green-600: #59731b;
+  --color-green-700: #465b19;
+  --color-green-800: #394918;
+  --color-green-900: #313e18;
+  --color-green-950: #18220a;
+
+  /* Info · 딥 틸 */
+  --color-teal-50: #effcf8;
+  --color-teal-100: #d7f7ed;
+  --color-teal-200: #afeedc;
+  --color-teal-300: #77dfc8;
+  --color-teal-400: #3cc6ad;
+  --color-teal-500: #1fa38e;
+  --color-teal-600: #167f70;
+  --color-teal-700: #15665c;
+  --color-teal-800: #155149;
+  --color-teal-900: #14443e;
+  --color-teal-950: #062824;
+
+  /* Error · 토마토 레드 */
+  --color-red-50: #fff0ee;
+  --color-red-100: #ffe3df;
+  --color-red-200: #ffc9c3;
+  --color-red-300: #fda29b;
+  --color-red-400: #f97066;
+  --color-red-500: #f04438;
+  --color-red-600: #d92d20;
+  --color-red-700: #b42318;
+  --color-red-800: #912018;
+  --color-red-900: #7a271a;
+  --color-red-950: #40110d;
+
+  /* ── Primitive · Typography ────────────────────────── */
+  --font-size-900: 40px;
+  --font-size-800: 36px;
+  --font-size-700: 32px;
+  --font-size-600: 28px;
+  --font-size-500: 24px;
+  --font-size-400: 20px;
+  --font-size-300: 16px;
+  --font-size-200: 14px;
+  --font-size-100: 12px;
+
+  --font-weight-bold: 700;
+  --font-weight-semibold: 600;
+  --font-weight-regular: 400;
+
+  --font-line-height-tight: 1.2;
+  --font-line-height-normal: 1.4;
+
+  /* ── Primitive · Spacing ───────────────────────────── */
+  --spacing-8: 8px;
+  --spacing-12: 12px;
+  --spacing-16: 16px;
+  --spacing-20: 20px;
+  --spacing-24: 24px;
+  --spacing-32: 32px;
+
+  /* ── Semantic · Text ───────────────────────────────── */
+  --color-text-default: var(--color-neutral-900);
+  --color-text-subtle: var(--color-neutral-600);
+  --color-text-muted: var(--color-neutral-600);
+  --color-text-disabled: var(--color-neutral-400);
+  --color-text-brand: var(--color-brand-700);
+  --color-text-on-brand: var(--color-neutral-50);
+  --color-text-on-strong: var(--color-neutral-50);
+  --color-text-on-strong-subtle: var(--color-neutral-300);
+  --color-text-highlight: var(--color-lime-300);
+  --color-text-warning: var(--color-lime-800);
+  --color-text-success: var(--color-green-700);
+  --color-text-info: var(--color-teal-700);
+  --color-text-error: var(--color-red-700);
+
+  /* ── Semantic · Background ─────────────────────────── */
+  --color-background-default: var(--color-neutral-50);
+  --color-background-subtle: var(--color-neutral-100);
+  --color-background-strong: var(--color-neutral-900);
+  --color-background-surface: var(--color-neutral-50);
+  --color-background-inverse: var(--color-neutral-900);
+  --color-background-disabled: var(--color-neutral-300);
+  --color-background-brand: var(--color-brand-700);
+  --color-background-brand-subtle: var(--color-brand-50);
+  --color-background-brand-accent: var(--color-brand-500);
+  --color-background-highlight: var(--color-lime-300);
+  --color-background-warning: var(--color-lime-100);
+  --color-background-success: var(--color-green-100);
+  --color-background-info: var(--color-teal-100);
+  --color-background-error: var(--color-red-50);
+  --color-background-error-strong: var(--color-red-500);
+  --color-background-map: var(--color-neutral-200);
+  --color-background-map-land: var(--color-green-200);
+
+  /* ── Semantic · Border ─────────────────────────────── */
+  --color-border-default: var(--color-neutral-200);
+  --color-border-strong: var(--color-neutral-400);
+  --color-border-brand: var(--color-brand-500);
+  --color-border-warning: var(--color-lime-600);
+  --color-border-success: var(--color-green-600);
+  --color-border-info: var(--color-teal-600);
+  --color-border-error: var(--color-red-600);
+}

@@ -35,6 +35,13 @@
 - 컴포넌트 추가·수정 시 스토리 함께 갱신
 - 완료 전 `tsc`, `vitest` 통과 확인
 
+# Supabase
+
+- 모든 Supabase API는 Next.js BFF(Route Handler `app/api/**/route.ts`)를 통해서만 호출
+- 클라이언트 컴포넌트·브라우저에서 Supabase 직접 호출 금지, 클라이언트는 BFF `fetch`만 사용
+- Supabase 클라이언트·키는 서버 전용, `NEXT_PUBLIC_` 접두사로 노출 금지
+- 인증(소셜 로그인 콜백·세션)도 BFF에서 처리
+
 # Layout
 
 - 컨테이너: `app/_components/layout.ts`만 사용
