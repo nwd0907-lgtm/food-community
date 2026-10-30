@@ -44,7 +44,15 @@ export const Text: Story = {
   },
 };
 
-export const Rectangle: Story = { args: { variant: "rectangle", width: 240, height: 96 } };
+/** 시머: 회색 배경 위로 기울어진 흰 빛줄기가 지나간다 */
+export const Rectangle: Story = {
+  args: { variant: "rectangle", width: 240, height: 96 },
+  play: async ({ canvasElement }) => {
+    const el = canvasElement.querySelector('[data-variant="rectangle"]')!;
+    await expect(getComputedStyle(el).overflow).toBe("hidden");
+    await expect(getComputedStyle(el, "::after").animationName).toBe("skeleton-shimmer");
+  },
+};
 export const Circle: Story = { args: { variant: "circle", size: 64 } };
 
 /** 카드 로딩 예시 */

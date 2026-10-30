@@ -2,7 +2,8 @@ import type { CSSProperties } from "react";
 import { cn } from "@/lib/cn";
 import type { TextVariant } from "../typography/Text";
 
-// design.pen skeleton · Type(text, rectangle, circle), 뉴트럴(background-disabled)
+// design.pen skeleton · Type(text, rectangle, circle)
+// 은은한 회색(background-skeleton) 위로 흰 빛줄기가 좌상단 → 우하단으로 지나가는 시머 (globals.css .skeleton-shimmer)
 // 텍스트형 높이 = 대상 타이포그래피의 행 높이(font-size × line-height 토큰)
 const lineHeight: Record<TextVariant, string> = {
   "display-lg": "calc(var(--font-size-800) * var(--font-line-height-tight))",
@@ -43,7 +44,7 @@ export function Skeleton(props: SkeletonProps) {
       aria-hidden
       data-variant={props.variant}
       style={style}
-      className={cn("block animate-pulse bg-[var(--color-background-disabled)]", shape, props.className)}
+      className={cn("skeleton-shimmer block", shape, props.className)}
     />
   );
 }

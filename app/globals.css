@@ -32,3 +32,43 @@ html:has([data-fullscreen]) body {
     font-family: var(--font-pretendard), "Pretendard Variable", sans-serif;
   }
 }
+
+/* 스켈레톤 시머(Skeleton): 은은한 회색 위로 흰 빛줄기가 좌상단에서 우하단으로 지나간다.
+   빛줄기 = 폭 4px 흰 세로줄 + 번짐, 시계 방향 30° 기울임. 높이를 요소의 2배로 두어
+   중심이 위·아래 가장자리에 있어도 요소 전체를 가로지른다 */
+@keyframes skeleton-shimmer {
+  from {
+    left: -60%;
+    top: -100%;
+  }
+  70%,
+  to {
+    left: 160%;
+    top: 0%;
+  }
+}
+
+.skeleton-shimmer {
+  position: relative;
+  overflow: hidden;
+  background: var(--color-background-skeleton);
+}
+
+.skeleton-shimmer::after {
+  content: "";
+  position: absolute;
+  width: 4px;
+  height: 200%;
+  background: var(--color-background-skeleton-shine);
+  filter: blur(6px);
+  box-shadow: 0 0 12px 6px var(--color-background-skeleton-shine);
+  transform: rotate(30deg);
+  animation: skeleton-shimmer 1.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-shimmer::after {
+    animation: none;
+    display: none;
+  }
+}

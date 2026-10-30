@@ -45,6 +45,8 @@ export const semanticColors = {
     ["color-background-error-strong", "color-red-500"],
     ["color-background-map", "color-neutral-200"],
     ["color-background-map-land", "color-green-200"],
+    ["color-background-skeleton", "color-gray-100"],
+    ["color-background-skeleton-shine", "color-neutral-0"],
   ],
   border: [
     ["color-border-default", "color-neutral-200"],

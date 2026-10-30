@@ -134,11 +134,11 @@ export const Search: Story = {
   },
 };
 
-/** 메인 검색(브랜드): 테두리 1px · 검색 아이콘 · 플레이스홀더를 브랜드 버튼과 같은 색으로 */
+/** 메인 검색(브랜드): 테두리 1.5px · 검색 아이콘을 브랜드 버튼과 같은 색으로 */
 export const SearchBrand: Story = {
   args: { ...Search.args, tone: "brand" },
   play: async ({ canvas }) => {
     const box = canvas.getByRole("textbox").parentElement!;
-    await expect(getComputedStyle(box).boxShadow).toContain("1px");
+    await expect(getComputedStyle(box).boxShadow).toContain("1.5px");
   },
 };

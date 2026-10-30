@@ -7,7 +7,7 @@ export type FieldSize = "sm" | "md" | "lg";
 
 export type FieldState = "default" | "focused" | "disabled" | "error";
 
-/** brand: 평소에도 브랜드색 1px 테두리(메인 검색처럼 눈에 띄어야 하는 필드). 비활성 · 오류는 기본과 같다 */
+/** brand: 평소에도 브랜드색 1.5px 테두리(메인 검색처럼 눈에 띄어야 하는 필드). 비활성 · 오류는 기본과 같다 */
 export type FieldTone = "default" | "brand";
 
 export const fieldSizeClasses: Record<FieldSize, string> = {
@@ -32,7 +32,7 @@ const stateClasses: Record<FieldState, string> = {
 /** 실제 포커스(focus-within)에도 focused 스타일이 나오도록 default/error 상태에 추가 */
 const focusWithin = "focus-within:shadow-[inset_0_0_0_1px_var(--color-background-brand)]";
 
-const brandBox = "bg-[var(--color-background-surface)] shadow-[inset_0_0_0_1px_var(--color-background-brand)]";
+const brandBox = "bg-[var(--color-background-surface)] shadow-[inset_0_0_0_1.5px_var(--color-background-brand)]";
 
 export function fieldBoxClasses(state: FieldState, tone: FieldTone = "default") {
   if (tone === "brand" && (state === "default" || state === "focused")) return brandBox;

@@ -18,6 +18,7 @@
 
   /* Neutral · 따뜻한 잉크 */
   --color-neutral-0: #ffffff; /* 화면 · 표면 배경 (순수 흰색) */
+  --color-gray-100: #eeeeee; /* 스켈레톤 배경 (베이지 기가 없는 은은한 회색) */
   --color-neutral-50: #fbfaf7;
   --color-neutral-100: #f5f2ec;
   --color-neutral-200: #e9e4dc;
@@ -141,6 +142,8 @@
   --color-background-error-strong: var(--color-red-500);
   --color-background-map: var(--color-neutral-200);
   --color-background-map-land: var(--color-green-200);
+  --color-background-skeleton: var(--color-gray-100);
+  --color-background-skeleton-shine: var(--color-neutral-0);
 
   /* ── Semantic · Border ─────────────────────────────── */
   --color-border-default: var(--color-neutral-200);

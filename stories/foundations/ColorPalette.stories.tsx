@@ -85,7 +85,7 @@ function ColorPalette() {
           Source · 01 메인 / 02 상세 / 03 등록 오류
         </Text>
         <Text variant="label-md" className="font-semibold">
-          66 primitive · 37 semantic tokens
+          66 primitive · 39 semantic tokens
         </Text>
       </div>
     </div>
