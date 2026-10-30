@@ -5,6 +5,8 @@ const nextConfig: NextConfig = {
   cacheComponents: true,
   partialPrefetching: true,
   images: {
+    // 맛집 · 프로필 사진은 업로드마다 새 경로(uuid)라 내용이 바뀌지 않는다. 최적화 결과를 31일 동안 다시 만들지 않는다
+    minimumCacheTTL: 2678400,
     // 프로필·맛집 사진: Supabase Storage 공개 URL(SUPABASE_STORAGE_URL), 기본값인 Google 계정 사진
     remotePatterns: [
       ...(process.env.SUPABASE_STORAGE_URL ? [new URL(`${process.env.SUPABASE_STORAGE_URL.replace(/\/$/, "")}/**`)] : []),

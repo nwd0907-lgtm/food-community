@@ -3,28 +3,42 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, type ChangeEvent } from "react";
+import { memo, useDeferredValue, useMemo, useState, type ChangeEvent } from "react";
 import { Card } from "@/components/card/Card";
 import { Empty } from "@/components/empty/Empty";
 import { Icon } from "@/components/icon/Icon";
 import { IconButton } from "@/components/icon-button/IconButton";
-import { Spinner } from "@/components/spinner/Spinner";
+import { Skeleton } from "@/components/skeleton/Skeleton";
 import { TextField } from "@/components/text-field/TextField";
 import { Text } from "@/components/typography/Text";
 import { cn } from "@/lib/cn";
-import { usePlaces } from "@/lib/usePlace";
+import type { PlaceSummary } from "@/lib/place";
+import { prefetchPlaces, usePlaces } from "@/lib/usePlace";
 import { gridContainer } from "./layout";
 
-// design.pen 01 메인 · 발견: 브랜드 헤더(워드마크 + 검색, 데스크톱은 + 마이) · 피드(제목 + 카드 + 로딩 스피너) · 등록 플로팅 버튼
-// 목록은 BFF GET /api/places (최신순). 검색은 받은 목록 안에서 이름·내용으로 거른다
+// design.pen 01 메인 · 발견: 브랜드 헤더(워드마크 + 검색, 데스크톱은 + 마이) · 피드(제목 + 카드, 로딩 중 카드 스켈레톤) · 등록 플로팅 버튼
+// 목록은 BFF GET /api/places (최신순, 캐시 후 갱신). 검색은 받은 목록 안에서 이름·내용으로 거른다
+// 입력은 바로 반영하고, 카드 목록 필터링은 useDeferredValue로 뒤로 미뤄 타이핑이 끊기지 않게 한다
+// 메인 목록은 앱 첫 화면이라, 하이드레이션을 기다리지 않고 이 모듈이 로드될 때 바로 요청한다
+if (typeof window !== "undefined") prefetchPlaces();
+
+const GRID = "grid grid-cols-1 gap-x-[var(--spacing-16)] gap-y-[var(--spacing-20)] sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4";
+/** 그리드 열 수(1 → 2 → 3 → 4)에 맞춘 카드 이미지 표시 폭 */
+const CARD_SIZES = "(max-width: 639px) 100vw, (max-width: 1023px) 50vw, (max-width: 1279px) 33vw, 320px";
+
 export function HomeDiscover() {
   const router = useRouter();
-  const { places = [], status } = usePlaces();
+  const { places, status } = usePlaces();
   const [query, setQuery] = useState("");
   const keyword = query.trim();
-  const results = keyword
-    ? places.filter((item) => item.title.includes(keyword) || item.content.includes(keyword))
-    : places;
+  const deferredKeyword = useDeferredValue(keyword);
+  const results = useMemo(
+    () =>
+      deferredKeyword && places
+        ? places.filter((item) => item.title.includes(deferredKeyword) || item.content.includes(deferredKeyword))
+        : places,
+    [places, deferredKeyword],
+  );
   const searchProps = {
     label: "맛집 검색",
     hideLabel: true,
@@ -84,30 +98,14 @@ export function HomeDiscover() {
           </Text>
         </div>
 
-        {status === "loading" ? (
-          <div className="flex items-center justify-center py-[var(--spacing-16)]">
-            <Spinner label="맛집을 불러오는 중" />
-          </div>
-        ) : status === "failed" ? (
-          <Empty visual="error" title="맛집을 불러오지 못했어요" description="잠시 후 새로고침해 주세요." />
+        {!results ? (
+          status === "failed" ? (
+            <Empty visual="error" title="맛집을 불러오지 못했어요" description="잠시 후 새로고침해 주세요." />
+          ) : (
+            <PlaceGridSkeleton />
+          )
         ) : results.length > 0 ? (
-          <ul className="grid grid-cols-1 gap-x-[var(--spacing-16)] gap-y-[var(--spacing-20)] sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {results.map((place, i) => (
-              <li key={place.id}>
-                <Link
-                  href={`/restaurants/${place.id}`}
-                  className="block rounded-xl focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-border-brand)]"
-                >
-                  <Card
-                    size="md"
-                    title={place.title}
-                    image={{ src: place.thumbnailUrl, alt: `${place.title} 대표 사진`, preload: i === 0 }}
-                    description={place.content}
-                  />
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <PlaceGrid places={results} />
         ) : keyword ? (
           <Empty
             visual="search"
@@ -138,5 +136,44 @@ export function HomeDiscover() {
         )}
       />
     </>
+  );
+}
+
+const PlaceGrid = memo(function PlaceGrid({ places }: { places: PlaceSummary[] }) {
+  return (
+    <ul className={GRID}>
+      {places.map((place, i) => (
+        <li key={place.id}>
+          <Link
+            href={`/restaurants/${place.id}`}
+            className="block rounded-xl focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-border-brand)]"
+          >
+            <Card
+              size="md"
+              title={place.title}
+              image={{ src: place.thumbnailUrl, alt: `${place.title} 대표 사진`, preload: i === 0, sizes: CARD_SIZES }}
+              description={place.content}
+            />
+          </Link>
+        </li>
+      ))}
+    </ul>
+  );
+});
+
+/** 카드(md)와 같은 크기: 이미지 190 · 제목 heading-sm · 설명 한 줄 */
+function PlaceGridSkeleton() {
+  return (
+    <ul aria-busy aria-label="맛집을 불러오는 중" className={GRID}>
+      {Array.from({ length: 8 }, (_, i) => (
+        <li key={i} className="flex flex-col gap-1">
+          <Skeleton variant="rectangle" width="100%" height={190} className="rounded-xl!" />
+          <div className="pt-2">
+            <Skeleton variant="text" typography="heading-sm" width="50%" />
+          </div>
+          <Skeleton variant="text" typography="body-md" width="80%" />
+        </li>
+      ))}
+    </ul>
   );
 }

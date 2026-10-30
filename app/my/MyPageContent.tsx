@@ -14,7 +14,8 @@ import { Toast } from "@/components/toast/Toast";
 import { Text } from "@/components/typography/Text";
 import type { PlaceSummary } from "@/lib/place";
 import { DEFAULT_AVATAR } from "@/lib/profile";
-import { usePlaces } from "@/lib/usePlace";
+import { clearBff } from "@/lib/bff";
+import { removePlaceFromCache, usePlaces } from "@/lib/usePlace";
 import { useProfile } from "@/lib/useProfile";
 
 // design.pen 07 마이페이지 · 내 기록: 프로필 요약(아바타 48 · 닉네임 · 이메일 · 로그아웃) · 탭(내 맛집 / 구매 내역 비활성) · 내 글 카드 그리드
@@ -23,7 +24,7 @@ import { useProfile } from "@/lib/useProfile";
 export function MyPageContent() {
   const router = useRouter();
   const { profile } = useProfile();
-  const { places, setPlaces } = usePlaces({ mine: true });
+  const { places } = usePlaces({ mine: true });
   const [deleting, setDeleting] = useState<PlaceSummary>();
   const [deleteError, setDeleteError] = useState<string>();
 
@@ -41,7 +42,7 @@ export function MyPageContent() {
         setDeleteError(body.message ?? "삭제하지 못했어요. 다시 시도해 주세요.");
         return;
       }
-      setPlaces((prev) => prev?.filter((place) => place.id !== target.id));
+      removePlaceFromCache(target.id);
     } catch {
       setDeleteError("삭제하지 못했어요. 다시 시도해 주세요.");
     }
@@ -86,8 +87,8 @@ export function MyPageContent() {
           className="mr-2 text-[var(--color-text-muted)]!"
           onClick={async () => {
             await fetch("/api/auth/logout", { method: "POST" });
+            clearBff();
             router.replace("/login");
-            router.refresh();
           }}
         />
       </section>
@@ -117,7 +118,7 @@ export function MyPageContent() {
                     <Card
                       size="sm"
                       title={place.title}
-                      image={{ src: place.thumbnailUrl, alt: `${place.title} 대표 사진` }}
+                      image={{ src: place.thumbnailUrl, alt: `${place.title} 대표 사진`, sizes: "(max-width: 767px) 50vw, (max-width: 1023px) 33vw, 320px" }}
                       description={place.content}
                     />
                   </Link>

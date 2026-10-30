@@ -1,14 +1,13 @@
 "use client";
 
 import { notFound } from "next/navigation";
-import { Spinner } from "@/components/spinner/Spinner";
 import { Toast } from "@/components/toast/Toast";
 import { cn } from "@/lib/cn";
 import { usePlace } from "@/lib/usePlace";
 import { formContainer } from "../../../_components/layout";
-import { PlaceForm } from "../../PlaceForm";
+import { PlaceForm, PlaceFormSkeleton } from "../../PlaceForm";
 
-// GET /api/places/[id]로 기존 값을 받아 폼을 채운다. 작성자가 아니면 폼 대신 안내 (저장은 BFF가 다시 확인)
+// GET /api/places/[id]로 기존 값을 받아 폼을 채운다(상세 · 목록 캐시가 있으면 바로). 작성자가 아니면 폼 대신 안내 (저장은 BFF가 다시 확인)
 export function EditPlace({ id }: { id: string }) {
   const { place, status } = usePlace(id);
 
@@ -21,12 +20,7 @@ export function EditPlace({ id }: { id: string }) {
         className={cn(formContainer, "mt-[var(--spacing-24)]")}
       />
     );
-  if (!place)
-    return (
-      <div className="flex flex-1 items-center justify-center py-[var(--spacing-32)]">
-        <Spinner label="맛집을 불러오는 중" />
-      </div>
-    );
+  if (!place) return <PlaceFormSkeleton />;
 
   return <PlaceForm place={place} />;
 }

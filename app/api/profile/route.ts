@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { AVATAR_MAX_BYTES, AVATAR_TYPES, validateNickname, type Profile, type ProfileError } from "@/lib/profile";
+import { IMMUTABLE_CACHE_CONTROL } from "@/lib/supabase/place";
 import { createClient } from "@/lib/supabase/server";
 
 const BUCKET = "profile-image";
@@ -77,7 +78,7 @@ export async function PATCH(request: Request) {
   let imagePath = prev?.image_path ?? null;
   if (file) {
     imagePath = `${user.id}/${crypto.randomUUID()}.${file.type === "image/png" ? "png" : "jpg"}`;
-    const { error } = await supabase.storage.from(BUCKET).upload(imagePath, file, { contentType: file.type });
+    const { error } = await supabase.storage.from(BUCKET).upload(imagePath, file, { contentType: file.type, cacheControl: IMMUTABLE_CACHE_CONTROL });
     if (error) return fail(500, { field: "image", message: "사진을 올리지 못했어요. 다시 시도해 주세요." });
   }
 

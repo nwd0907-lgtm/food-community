@@ -1,8 +1,8 @@
 // 맛집 BFF(/api/places) 응답 타입과 검증 규칙. 클라이언트·서버 공용 (Supabase 의존 없음)
 export type PlaceImage = { id: string; url: string };
 
-/** 목록 카드: 대표 사진(첫 장) */
-export type PlaceSummary = { id: string; title: string; content: string; thumbnailUrl: string };
+/** 목록 항목: 상세(Place)와 같은 내용 + 카드용 대표 사진(첫 장). 목록에서 상세로 갈 때 기다리지 않고 바로 그린다 */
+export type PlaceSummary = Place & { thumbnailUrl: string };
 
 /** 지도 위치(WGS84). name은 장소 검색에서 고른 경우의 상호명(저장하지 않음) */
 export type PlaceLocation = { address: string; latitude: number; longitude: number; name?: string };

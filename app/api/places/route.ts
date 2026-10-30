@@ -7,9 +7,7 @@ import {
   getUserId,
   parsePlaceForm,
   PLACE_SELECT,
-  placeImageUrl,
   removePlaceImages,
-  sortImages,
   toPlace,
   uploadPlaceImages,
 } from "@/lib/supabase/place";
@@ -30,10 +28,11 @@ export async function GET(request: NextRequest) {
   const { data, error } = await query;
   if (error) return fail(500, { message: "맛집을 불러오지 못했어요." });
 
+  // 상세와 같은 내용을 담아, 목록에서 상세로 갈 때 클라이언트가 다시 기다리지 않게 한다
   const places: PlaceSummary[] = data.flatMap((row) => {
-    const [cover] = sortImages(row.place_image);
+    const place = toPlace(row, userId);
     // 사진 없는 글은 만들 수 없지만, 정합성이 깨진 행은 카드에서 제외한다
-    return cover ? [{ id: row.id, title: row.title, content: row.content, thumbnailUrl: placeImageUrl(cover.image_path) }] : [];
+    return place.images[0] ? [{ ...place, thumbnailUrl: place.images[0].url }] : [];
   });
   return NextResponse.json(places);
 }

@@ -18,8 +18,8 @@ export type CardSize = keyof typeof sizeStyles;
 export type CardProps = {
   size?: CardSize;
   title: string;
-  /** preload: 첫 화면(LCP) 이미지면 true */
-  image?: { src: string; alt: string; preload?: boolean };
+  /** preload: 첫 화면(LCP) 이미지면 true. sizes: 그리드 열 수에 맞춘 표시 폭(기본: 모바일 전체 폭, 그 외 400px) */
+  image?: { src: string; alt: string; preload?: boolean; sizes?: string };
   /** 이미지 좌상단 배지 */
   imageBadge?: string;
   /** 제목 우측 메타 정보(예: 차로 18분) */
@@ -52,7 +52,7 @@ export function Card({
             alt={image.alt}
             fill
             preload={image.preload}
-            sizes="(max-width: 768px) 100vw, 400px"
+            sizes={image.sizes ?? "(max-width: 768px) 100vw, 400px"}
             className="object-cover"
           />
           {imageBadge && <Badge label={imageBadge} className="absolute top-3 left-3" />}

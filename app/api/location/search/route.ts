@@ -13,7 +13,8 @@ export async function GET(request: NextRequest) {
   if (query.length > 50) return fail(400, { message: "검색어는 50자 이내로 입력해 주세요." });
 
   try {
-    return NextResponse.json(await searchLocal(query));
+    // 같은 검색어를 다시 치면 브라우저 캐시로 바로 보여 준다 (사용자별 응답이라 private)
+    return NextResponse.json(await searchLocal(query), { headers: { "Cache-Control": "private, max-age=300" } });
   } catch {
     return fail(502, { message: "장소를 검색하지 못했어요. 다시 시도해 주세요." });
   }

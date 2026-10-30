@@ -18,7 +18,7 @@ import {
   type Profile,
   type ProfileError,
 } from "@/lib/profile";
-import { useProfile } from "@/lib/useProfile";
+import { saveProfileToCache, useProfile } from "@/lib/useProfile";
 import { formContainer } from "../../_components/layout";
 
 // design.pen 08 내 정보(프로필 설정): 아바타 72 + 카메라 변경 버튼 · 이메일 · 닉네임 입력 · 하단 저장하기
@@ -69,8 +69,8 @@ function ProfileFields({ profile }: { profile?: Profile }) {
         setServerError(await response.json());
         return;
       }
+      saveProfileToCache(await response.json());
       router.push("/my");
-      router.refresh();
     } catch {
       setServerError({ message: "저장하지 못했어요. 다시 시도해 주세요." });
     } finally {

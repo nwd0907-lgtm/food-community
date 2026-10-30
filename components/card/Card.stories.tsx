@@ -34,11 +34,25 @@ export const Minimal: Story = {
   args: { image: undefined, imageBadge: undefined, meta: undefined, tags: undefined },
 };
 
-/** 메인 피드 — 간격 4, 제목 heading-sm, 설명 한 줄 */
+/** 메인 피드 — 간격 4, 제목 heading-sm, 설명 한 줄. image.sizes로 그리드 열 수에 맞춘 사진 크기를 받는다 */
 export const Feed: Story = {
-  args: { size: "md", imageBadge: undefined, meta: undefined, tags: undefined },
+  args: {
+    size: "md",
+    image: {
+      src: "/images/kenhome-1991.jpeg",
+      alt: "켄홈 1991 가게 입구",
+      sizes: "(max-width: 639px) 100vw, (max-width: 1023px) 50vw, (max-width: 1279px) 33vw, 320px",
+    },
+    imageBadge: undefined,
+    meta: undefined,
+    tags: undefined,
+  },
   play: async ({ canvas }) => {
     await expect(canvas.getByRole("heading", { name: "도림천 면옥" })).toHaveStyle({ fontSize: "16px" });
+    await expect(canvas.getByRole("img", { name: "켄홈 1991 가게 입구" })).toHaveAttribute(
+      "sizes",
+      "(max-width: 639px) 100vw, (max-width: 1023px) 50vw, (max-width: 1279px) 33vw, 320px",
+    );
   },
 };
 

@@ -6,6 +6,7 @@ import { Empty } from "@/components/empty/Empty";
 import { Icon } from "@/components/icon/Icon";
 import { IconButton } from "@/components/icon-button/IconButton";
 import { ListItem } from "@/components/list-item/ListItem";
+import { Skeleton } from "@/components/skeleton/Skeleton";
 import { NaverMap, type MapCoords } from "@/components/naver-map/NaverMap";
 import { TopNavigation } from "@/components/navigation/TopNavigation";
 import { TextField } from "@/components/text-field/TextField";
@@ -31,8 +32,8 @@ export type LocationPickerProps = {
 const navContent = "lg:mx-auto lg:max-w-[1280px] lg:px-[var(--spacing-32)]";
 
 /** BFF GET 공통: 401이면 로그인으로 보낸다 */
-async function getJson<T>(url: string): Promise<T> {
-  const response = await fetch(url);
+async function getJson<T>(url: string, signal?: AbortSignal): Promise<T> {
+  const response = await fetch(url, { signal });
   if (response.status === 401) {
     window.location.replace("/login");
     throw new Error("401");
@@ -210,7 +211,12 @@ function objectParticle(word: string) {
 type SearchState =
   | { status: "idle" }
   | { status: "done"; query: string; items: LocationSearchItem[] }
-  | { status: "failed" };
+  | { status: "failed"; query: string };
+
+/** 검색어별 결과. 같은 검색어(지웠다 다시 입력, 다시 열기)는 기다리지 않고 바로 보여 준다 */
+const searchCache = new Map<string, LocationSearchItem[]>();
+/** 입력이 이 시간만큼 멈추면 검색 (한 글자마다 요청하지 않도록 최소한만 기다린다) */
+const SEARCH_DELAY_MS = 150;
 
 function LocationSearch({
   initialQuery,
@@ -226,24 +232,37 @@ function LocationSearch({
   const [query, setQuery] = useState(initialQuery);
   const [result, setResult] = useState<SearchState>({ status: "idle" });
   const trimmed = query.trim();
+  const cached = searchCache.get(trimmed);
 
-  // 입력이 멈추고 300ms 뒤 검색. 이전 요청은 취소된 것으로 보고 결과를 버린다
+  // 캐시에 없는 검색어만 입력이 잠깐 멈춘 뒤 검색. 검색어가 바뀌면 이전 요청은 중단한다
   useEffect(() => {
-    if (!trimmed) return;
-    let active = true;
+    if (!trimmed || searchCache.has(trimmed)) return;
+    const controller = new AbortController();
     const timer = setTimeout(() => {
-      getJson<LocationSearchItem[]>(`/api/location/search?query=${encodeURIComponent(trimmed)}`)
-        .then((items) => active && setResult({ status: "done", query: trimmed, items }))
-        .catch(() => active && setResult({ status: "failed" }));
-    }, 300);
+      getJson<LocationSearchItem[]>(`/api/location/search?query=${encodeURIComponent(trimmed)}`, controller.signal)
+        .then((items) => {
+          searchCache.set(trimmed, items);
+          setResult({ status: "done", query: trimmed, items });
+        })
+        .catch(() => !controller.signal.aborted && setResult({ status: "failed", query: trimmed }));
+    }, SEARCH_DELAY_MS);
     return () => {
-      active = false;
       clearTimeout(timer);
+      controller.abort();
     };
   }, [trimmed]);
 
-  const shown = trimmed ? result : ({ status: "idle" } as const);
-  const empty = shown.status === "done" && shown.items.length === 0;
+  // 지금 검색어의 결과(캐시 우선). 아직 없으면 이전 결과를 유지하고, 보여 줄 것도 없으면 스켈레톤
+  const current: SearchState | undefined = !trimmed
+    ? { status: "idle" }
+    : cached
+      ? { status: "done", query: trimmed, items: cached }
+      : result.status !== "idle" && result.query === trimmed
+        ? result
+        : undefined;
+  const shown = current ?? (result.status === "done" ? result : undefined);
+  const searching = !current;
+  const empty = shown?.status === "done" && shown.items.length === 0 && !searching;
 
   return (
     <>
@@ -275,10 +294,16 @@ function LocationSearch({
           onTrailingIconClick={() => setQuery("")}
         />
 
-        {shown.status === "failed" && <Toast type="error" message="장소를 검색하지 못했어요. 다시 시도해 주세요." />}
+        {shown?.status === "failed" && <Toast type="error" message="장소를 검색하지 못했어요. 다시 시도해 주세요." />}
 
-        {shown.status === "done" && shown.items.length > 0 && (
-          <ul aria-label="검색 결과" className="flex flex-col divide-y divide-[var(--color-border-default)]">
+        {searching && !(shown?.status === "done" && shown.items.length > 0) && <SearchResultSkeleton />}
+
+        {shown?.status === "done" && shown.items.length > 0 && (
+          <ul
+            aria-label="검색 결과"
+            aria-busy={searching}
+            className="flex flex-col divide-y divide-[var(--color-border-default)]"
+          >
             {shown.items.map((item) => (
               <li key={`${item.name}-${item.address}`}>
                 <ListItem icon="search" title={item.name} description={item.address} onClick={() => onSelect(item)} />
@@ -307,5 +332,22 @@ function LocationSearch({
         )}
       </div>
     </>
+  );
+}
+
+/** 검색 결과 행(ListItem)과 같은 크기: 아이콘 16 · 제목 label-lg · 주소 label-md, 패딩 12/8 */
+function SearchResultSkeleton() {
+  return (
+    <ul aria-busy aria-label="장소를 검색하는 중" className="flex flex-col divide-y divide-[var(--color-border-default)]">
+      {Array.from({ length: 3 }, (_, i) => (
+        <li key={i} className="flex items-start gap-3 px-3 py-2">
+          <Skeleton variant="rectangle" width={16} height={16} className="mt-0.5" />
+          <div className="flex min-w-0 flex-1 flex-col">
+            <Skeleton variant="text" typography="label-lg" width="45%" />
+            <Skeleton variant="text" typography="label-md" width="75%" />
+          </div>
+        </li>
+      ))}
+    </ul>
   );
 }

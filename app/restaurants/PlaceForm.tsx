@@ -6,6 +6,7 @@ import { createPortal } from "react-dom";
 import { Button } from "@/components/button/Button";
 import { FileUploader, type UploadFile } from "@/components/file-uploader/FileUploader";
 import { Icon } from "@/components/icon/Icon";
+import { Skeleton } from "@/components/skeleton/Skeleton";
 import { TextField } from "@/components/text-field/TextField";
 import { Textarea } from "@/components/textarea/Textarea";
 import { Toast } from "@/components/toast/Toast";
@@ -25,6 +26,7 @@ import {
   type PlaceError,
   type PlaceLocation,
 } from "@/lib/place";
+import { savePlaceToCache } from "@/lib/usePlace";
 import { formContainer } from "../_components/layout";
 import { LocationPicker } from "./LocationPicker";
 
@@ -155,8 +157,9 @@ export function PlaceForm({ place }: { place?: Place }) {
         return;
       }
       const saved: Place = await response.json();
+      // 캐시에 바로 반영하므로 상세 · 목록이 다시 받기를 기다리지 않는다
+      savePlaceToCache(saved);
       router.replace(`/restaurants/${saved.id}`);
-      router.refresh();
     } catch {
       setServerError({ message: "저장하지 못했어요. 다시 시도해 주세요." });
     } finally {
@@ -263,5 +266,28 @@ export function PlaceForm({ place }: { place?: Place }) {
         {place ? "수정하기" : "등록하기"}
       </Button>
     </form>
+  );
+}
+
+/** 수정 화면에서 기존 값을 받는 동안: 사진 업로더 · 가게 이름 · 추천 이야기 · 장소 · 버튼 자리 */
+export function PlaceFormSkeleton() {
+  return (
+    <div
+      aria-busy
+      aria-label="맛집을 불러오는 중"
+      className={cn(formContainer, "flex flex-1 flex-col gap-[var(--spacing-24)] pt-[var(--spacing-16)] pb-[var(--spacing-32)]")}
+    >
+      <Skeleton variant="rectangle" width="100%" height={160} className="rounded-xl!" />
+      <div className="flex flex-col gap-1.5">
+        <Skeleton variant="text" typography="label-lg" width={64} />
+        <Skeleton variant="rectangle" width="100%" height={48} className="rounded-xl!" />
+      </div>
+      <div className="flex flex-col gap-1.5">
+        <Skeleton variant="text" typography="label-lg" width={72} />
+        <Skeleton variant="rectangle" width="100%" height={160} className="rounded-xl!" />
+      </div>
+      <Skeleton variant="rectangle" width="100%" height={48} className="rounded-xl!" />
+      <Skeleton variant="rectangle" width="100%" height={48} className="rounded-xl!" />
+    </div>
   );
 }

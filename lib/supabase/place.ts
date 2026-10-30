@@ -100,12 +100,15 @@ export function parsePlaceForm(form: FormData, existingCount = 0) {
   return { title, content, address, latitude, longitude, files };
 }
 
+/** 파일 경로가 매번 새 uuid라 내용이 바뀌지 않으므로 1년 캐시 (브라우저 · 이미지 최적화 캐시가 다시 받지 않게) */
+export const IMMUTABLE_CACHE_CONTROL = "31536000";
+
 /** place-image 버킷 루트에 <uuidv4>.<ext>로 올린다. 하나라도 실패하면 올린 것을 지우고 null */
 export async function uploadPlaceImages(supabase: Supabase, files: File[]) {
   const paths = files.map((file) => `${crypto.randomUUID()}.${file.type === "image/png" ? "png" : "jpg"}`);
   const results = await Promise.all(
     files.map((file, i) =>
-      supabase.storage.from(PLACE_IMAGE_BUCKET).upload(paths[i], file, { contentType: file.type }),
+      supabase.storage.from(PLACE_IMAGE_BUCKET).upload(paths[i], file, { contentType: file.type, cacheControl: IMMUTABLE_CACHE_CONTROL }),
     ),
   );
   if (results.every((result) => !result.error)) return paths;

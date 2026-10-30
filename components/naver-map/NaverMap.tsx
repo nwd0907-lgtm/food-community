@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { preconnect } from "react-dom";
 import { cn } from "@/lib/cn";
 
 // design.pen 09 장소 등록 · 02 상세 미니 지도: NAVER 지도 + 가운데 고정 파란 핀(40×41, 핀 끝이 지도 중심)
@@ -80,6 +81,8 @@ export function NaverMap({
   const centerRef = useRef(center);
   const onCenterChangeRef = useRef(onCenterChange);
   const [failed, setFailed] = useState(false);
+  // SDK 스크립트는 지도를 그릴 때 받으므로, 렌더 시점에 연결을 미리 열어 둔다
+  preconnect("https://oapi.map.naver.com");
 
   useEffect(() => {
     onCenterChangeRef.current = onCenterChange;
