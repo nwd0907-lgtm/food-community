@@ -92,8 +92,8 @@ export function HomeDiscover() {
       <main
         className={cn(
           gridContainer,
-          // 헤더 아래 8(헤더 py)에 바로 이어 피드 제목이 온다
-          "flex flex-1 flex-col gap-[var(--spacing-20)] pb-[var(--spacing-24)]",
+          // 피드 위 8: 헤더 아래 8과 합쳐 처음엔 16, 스크롤하면 고정 헤더 아래 8만 남는다
+          "flex flex-1 flex-col gap-[var(--spacing-20)] pt-[var(--spacing-8)] pb-[var(--spacing-24)]",
         )}
       >
         <div className="pb-1">
