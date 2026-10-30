@@ -25,9 +25,11 @@ export function BrandHero({ children, variant = "page", className }: BrandHeroPr
   const splash = variant === "splash";
   return (
     <Root
+      // 로그인처럼 페이지 전체가 이 화면이면 문서 스크롤 · 바운스를 끈다 (globals.css)
+      data-fullscreen={splash ? undefined : true}
       className={cn(
-        // 전체 화면 고정(h-dvh): 내용이 화면보다 길어 스크롤이 생기지 않게 화면 높이에 맞추고 넘치는 사진은 자른다
-        "relative isolate flex h-dvh flex-1 flex-col justify-between overflow-hidden bg-[var(--color-background-strong)]",
+        // 전체 화면 고정(h-dvh). 확대한 사진 · 빛 번짐이 화면 밖으로 넘치므로 overflow-clip으로 스크롤 영역 자체를 만들지 않는다
+        "relative isolate flex h-dvh flex-1 flex-col justify-between overflow-clip bg-[var(--color-background-strong)]",
         className,
       )}
     >

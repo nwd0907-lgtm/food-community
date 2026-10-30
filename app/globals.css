@@ -6,9 +6,12 @@
   --app-install-banner-height: 0px;
 }
 
-/* 스플래시(AppSplash)가 떠 있는 동안 뒤 페이지가 스크롤 · 바운스되지 않게 문서 스크롤을 잠근다 */
+/* 스플래시(AppSplash)가 떠 있는 동안, 그리고 전체 화면 페이지(로그인, BrandHero)에서는
+   문서 스크롤과 iOS 고무줄 바운스를 끈다 */
 html.app-splash,
-html.app-splash body {
+html.app-splash body,
+html:has([data-fullscreen]),
+html:has([data-fullscreen]) body {
   overflow: hidden;
   overscroll-behavior: none;
 }
