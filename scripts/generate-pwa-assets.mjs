@@ -26,15 +26,14 @@ async function extractMark(file, box) {
   return sharp(out, { raw: { width: info.width, height: info.height, channels: 4 } }).png().toBuffer();
 }
 
-/** 배경 위 중앙에 심볼 배치. markRatio = 캔버스 높이 대비 심볼 높이 */
-async function composeIcon(mark, size, markRatio, { radius = 0 } = {}) {
+/** 배경 위 중앙에 심볼 배치. markRatio = 캔버스 높이 대비 심볼 높이, transparent면 배경 없이 심볼만 */
+async function composeIcon(mark, size, markRatio, { transparent = false } = {}) {
   const markImage = await sharp(mark).resize({ height: Math.round(size * markRatio) }).toBuffer();
-  const background = radius
-    ? Buffer.from(
-        `<svg width="${size}" height="${size}"><rect width="${size}" height="${size}" rx="${radius}" fill="rgb(${BG.r},${BG.g},${BG.b})"/></svg>`,
-      )
-    : { create: { width: size, height: size, channels: 4, background: { ...BG, alpha: 1 } } };
-  return sharp(background).composite([{ input: markImage, gravity: "center" }]).png().toBuffer();
+  const background = { ...BG, alpha: transparent ? 0 : 1 };
+  return sharp({ create: { width: size, height: size, channels: 4, background } })
+    .composite([{ input: markImage, gravity: "center" }])
+    .png()
+    .toBuffer();
 }
 
 /** PNG 여러 장을 담은 ICO(Vista+ PNG 임베드 방식) */
@@ -77,12 +76,12 @@ async function main() {
   // iOS 홈 화면 아이콘(모서리는 iOS가 직접 깎는다)
   await writeFile("app/apple-icon.png", await composeIcon(mark, 180, 0.7));
 
-  // 파비콘: 작은 크기에서 읽히도록 심볼을 크게, 둥근 사각 배경
+  // 파비콘: 배경 없이 심볼만, 작은 크기에서 읽히도록 캔버스 높이를 거의 채운다
   const favicons = await Promise.all(
-    [16, 32, 48].map(async (size) => ({ size, buffer: await composeIcon(mark, size, 0.84, { radius: size * 0.2 }) })),
+    [16, 32, 48].map(async (size) => ({ size, buffer: await composeIcon(mark, size, 0.96, { transparent: true }) })),
   );
   await writeFile("app/favicon.ico", toIco(favicons));
-  await writeFile("app/icon.png", await composeIcon(mark, 96, 0.8, { radius: 20 }));
+  await writeFile("app/icon.png", await composeIcon(mark, 96, 0.96, { transparent: true }));
 
   // iOS 스플래시: 흰 배경 + 중앙 워드마크(화면 짧은 변의 56%)
   for (const screen of splashScreens) {
