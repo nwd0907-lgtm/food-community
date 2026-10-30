@@ -28,10 +28,10 @@ export const semanticColors = {
     ["color-text-error", "color-red-700"],
   ],
   background: [
-    ["color-background-default", "color-neutral-50"],
+    ["color-background-default", "color-neutral-0"],
     ["color-background-subtle", "color-neutral-100"],
     ["color-background-strong", "color-neutral-900"],
-    ["color-background-surface", "color-neutral-50"],
+    ["color-background-surface", "color-neutral-0"],
     ["color-background-inverse", "color-neutral-900"],
     ["color-background-disabled", "color-neutral-300"],
     ["color-background-brand", "color-brand-700"],

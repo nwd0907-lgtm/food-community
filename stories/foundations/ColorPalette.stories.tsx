@@ -5,7 +5,7 @@ import { FoundationHeader } from "./FoundationHeader";
 import { colorScales, colorSteps, contrastRatio, readToken } from "./tokens";
 
 // design.pen "Color Foundation · 시안 추출 팔레트": 색상별 1행, 프리미티브 토큰 1개당 정사각형 1개.
-// 대비율은 neutral-50 배경 기준, 3:1 이상 / 4.5:1 이상이면 태그 표시.
+// 대비율은 화면 배경(background-default = neutral-0) 기준, 3:1 이상 / 4.5:1 이상이면 태그 표시.
 
 function ContrastTag({ ratio }: { ratio: number }) {
   if (ratio >= 4.5)
@@ -25,7 +25,7 @@ function ContrastTag({ ratio }: { ratio: number }) {
 
 function PaletteCell({ token }: { token: string }) {
   const step = token.split("-").pop();
-  const ratio = contrastRatio(readToken(token), readToken("color-neutral-50"));
+  const ratio = contrastRatio(readToken(token), readToken("color-neutral-0"));
   return (
     <div className="flex w-[92px] flex-col items-center gap-[7px]">
       <div
@@ -52,7 +52,7 @@ function ColorPalette() {
         aside={
           <div className="flex flex-col items-end gap-2">
             <Text variant="label-md" className="font-semibold text-[var(--color-text-subtle)]">
-              neutral-50 배경 대비
+              neutral-0(흰) 배경 대비
             </Text>
             <div className="flex gap-2">
               <span className="rounded-[14px] bg-[var(--color-neutral-700)] px-2.5 py-1.5 text-[11px] font-bold text-[var(--color-neutral-50)]">

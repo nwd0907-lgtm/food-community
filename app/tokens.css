@@ -17,6 +17,7 @@
   --color-brand-950: #410e05;
 
   /* Neutral · 따뜻한 잉크 */
+  --color-neutral-0: #ffffff; /* 화면 · 표면 배경 (순수 흰색) */
   --color-neutral-50: #fbfaf7;
   --color-neutral-100: #f5f2ec;
   --color-neutral-200: #e9e4dc;
@@ -123,10 +124,10 @@
   --color-text-error: var(--color-red-700);
 
   /* ── Semantic · Background ─────────────────────────── */
-  --color-background-default: var(--color-neutral-50);
+  --color-background-default: var(--color-neutral-0);
   --color-background-subtle: var(--color-neutral-100);
   --color-background-strong: var(--color-neutral-900);
-  --color-background-surface: var(--color-neutral-50);
+  --color-background-surface: var(--color-neutral-0);
   --color-background-inverse: var(--color-neutral-900);
   --color-background-disabled: var(--color-neutral-300);
   --color-background-brand: var(--color-brand-700);

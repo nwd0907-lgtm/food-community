@@ -9,7 +9,7 @@ import { BrandHero } from "./BrandHero";
 // 실행(세션)당 한 번만 띄우고, 최소 노출 시간이 지나면 페이드아웃한다
 
 const SPLASH_KEY = "foood:splash-shown";
-const MIN_VISIBLE_MS = 1200;
+const MIN_VISIBLE_MS = 2200;
 const FADE_MS = 300;
 
 /** <head>에서 바로 실행: 홈 화면 앱 실행이고 이번 세션에 아직 안 띄웠으면 스플래시를 켠다 */
@@ -38,7 +38,7 @@ export function AppSplash() {
   return (
     <BrandHero
       variant="splash"
-      className="fixed! inset-0 z-[100] hidden! transition-opacity duration-300 [html.app-splash_&]:flex! [html.app-splash-leaving_&]:opacity-0"
+      className="fixed! inset-0 z-[100] hidden! touch-none overscroll-none transition-opacity duration-300 [html.app-splash_&]:flex! [html.app-splash-leaving_&]:opacity-0"
     >
       <div aria-hidden className="flex h-12 items-center justify-center">
         <Text variant="body-lg" className="text-[var(--color-text-on-strong)]">

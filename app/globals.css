@@ -6,6 +6,13 @@
   --app-install-banner-height: 0px;
 }
 
+/* 스플래시(AppSplash)가 떠 있는 동안 뒤 페이지가 스크롤 · 바운스되지 않게 문서 스크롤을 잠근다 */
+html.app-splash,
+html.app-splash body {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
 @layer base {
   html,
   body {

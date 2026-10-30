@@ -6,8 +6,8 @@ export const iconBackground = "#FFFFFF";
 /** 스플래시 배경: 매니페스트 background_color(안드로이드)와 iOS apple-touch-startup-image */
 export const splashBackground = "#FFFFFF";
 
-/** 브라우저 UI · 상태 표시줄 색: 앱 배경(--color-background-default, neutral-50)과 맞춘다 */
-export const appThemeColor = "#fbfaf7";
+/** 브라우저 UI · 상태 표시줄 색: 앱 배경(--color-background-default, neutral-0)과 맞춘다 */
+export const appThemeColor = "#ffffff";
 
 /** iOS apple-touch-startup-image 대상 기기: CSS 뷰포트(세로) × DPR */
 export const splashScreens = [

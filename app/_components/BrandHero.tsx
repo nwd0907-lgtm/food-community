@@ -26,7 +26,8 @@ export function BrandHero({ children, variant = "page", className }: BrandHeroPr
   return (
     <Root
       className={cn(
-        "relative isolate flex min-h-dvh flex-1 flex-col justify-between overflow-hidden bg-[var(--color-background-strong)]",
+        // 전체 화면 고정(h-dvh): 내용이 화면보다 길어 스크롤이 생기지 않게 화면 높이에 맞추고 넘치는 사진은 자른다
+        "relative isolate flex h-dvh flex-1 flex-col justify-between overflow-hidden bg-[var(--color-background-strong)]",
         className,
       )}
     >
