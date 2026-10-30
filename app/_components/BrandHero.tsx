@@ -38,7 +38,7 @@ export function BrandHero({ children, variant = "page", className }: BrandHeroPr
       )}
       <div aria-hidden className={cn("absolute inset-0 -z-10", overlay)} />
 
-      {/* 시안 기준(상태바 제외): 빛 번짐 top 51 · 높이 160, 워드마크 영역 top 105 · 높이 48 */}
+      {/* 시안 기준(상태바 제외): 빛 번짐 top 51 · 높이 160, 워드마크 영역 top 105 · 높이 48 (워드마크 자체는 높이 28) */}
       <div className="relative h-[251px]">
         <div
           aria-hidden
@@ -50,10 +50,10 @@ export function BrandHero({ children, variant = "page", className }: BrandHeroPr
         <div className="absolute inset-x-0 top-[105px] flex h-12 items-center justify-center">
           {splash ? (
             // eslint-disable-next-line @next/next/no-img-element -- 숨김 상태에서도 받는 작은 로고라 최적화 경로를 거치지 않는다
-            <img src="/brand/wordmark.png" alt="" width={238} height={96} className="h-10 w-auto" />
+            <img src="/brand/wordmark.png" alt="" width={238} height={96} className="h-7 w-auto" />
           ) : (
             <h1>
-              <Image src="/brand/wordmark.png" alt="FOOOD" width={238} height={96} priority className="h-10 w-auto" />
+              <Image src="/brand/wordmark.png" alt="FOOOD" width={238} height={96} priority className="h-7 w-auto" />
             </h1>
           )}
         </div>
