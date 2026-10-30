@@ -2,10 +2,13 @@ import Image from "next/image";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/cn";
 import { heroImageUrl, wordmarkUrl } from "@/lib/pwa";
+import { HeroReady } from "./HeroReady";
+import { heroLayer, heroReadyScript } from "./heroReadyScript";
 import { formContainer } from "./layout";
 
 // design.pen 04 로그인 · Google: 전면 사진 + 상단 밝음/하단 블랙 그라디언트 · 빛 번짐 위 워드마크 · 하단 액션 영역
 // 로그인 화면과 홈 화면 앱 실행 스플래시(AppSplash)가 같은 배경을 쓰고, 하단 영역만 다르다
+// 사진 · 빛 번짐 · 워드마크는 사진과 워드마크를 다 받은 뒤 한 번에 보인다 (heroReadyScript)
 // 사진 · 워드마크는 두 화면이 같은 주소(최적화 경로 없이 원본 파일)를 써서, 스플래시가 걷힐 때 로그인 화면이 다시 받지 않는다
 // 그라디언트의 흰색/검정은 background-default / background-strong 토큰에 투명도를 섞어 표현 (Tailwind 스캔을 위해 리터럴 클래스)
 const overlay =
@@ -39,15 +42,15 @@ export function BrandHero({ children, variant = "page", className }: BrandHeroPr
         <div
           aria-hidden
           style={{ backgroundImage: `url(${heroImageUrl})` }}
-          className={cn("absolute inset-0 bg-cover bg-center", photoClasses)}
+          className={cn("absolute inset-0 bg-cover bg-center", photoClasses, heroLayer)}
         />
       ) : (
-        <Image src={heroImageUrl} alt="" fill unoptimized preload className={photoClasses} />
+        <Image src={heroImageUrl} alt="" fill unoptimized preload className={cn(photoClasses, heroLayer)} />
       )}
       <div aria-hidden className={cn("absolute inset-0 -z-10", overlay)} />
 
       {/* 시안 기준(상태바 제외): 빛 번짐 top 51 · 높이 160, 워드마크 영역 top 105 · 높이 48 (워드마크 자체는 높이 28) */}
-      <div className="relative h-[251px]">
+      <div className={cn("relative h-[251px]", heroLayer)}>
         <div
           aria-hidden
           className={cn(
@@ -70,6 +73,13 @@ export function BrandHero({ children, variant = "page", className }: BrandHeroPr
       <div className={cn(formContainer, "flex flex-col gap-[var(--spacing-16)] pt-[var(--spacing-16)] pb-[var(--spacing-24)]")}>
         {children}
       </div>
+      {!splash && (
+        <>
+          {/* 첫 로드: 사진 · 워드마크 요청과 함께 바로 시작. 스플래시는 splashScript가 맡는다 */}
+          <script dangerouslySetInnerHTML={{ __html: heroReadyScript }} />
+          <HeroReady />
+        </>
+      )}
     </Root>
   );
 }
