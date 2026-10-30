@@ -61,6 +61,11 @@ export function prefetchBff(url: string) {
   if (!entry || entry.status !== "ok" || Date.now() - entry.fetchedAt > FRESH_MS) void fetchBff(url);
 }
 
+/** 캐시가 아예 없을 때만 받아 둔다. 다음에 갈 화면을 미리 데울 때 (이미 있으면 그 화면에서 갱신) */
+export function warmBff(url: string) {
+  if (!entries.has(url)) void fetchBff(url);
+}
+
 /** 캐시에 있는 데이터(구독 없이 한 번 읽기) */
 export function readBff<T>(url: string) {
   return entries.get(url)?.data as T | undefined;

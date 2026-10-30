@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import type { IconName } from "@/components/icon/Icon";
 import { TopNavigation } from "@/components/navigation/TopNavigation";
 
@@ -16,6 +17,13 @@ export type AppTopNavigationProps = {
 
 export function AppTopNavigation({ title, leftAction, rightActions = [], className }: AppTopNavigationProps) {
   const router = useRouter();
+  const hrefs = [leftAction, ...rightActions].flatMap((action) => (action && "href" in action ? [action.href] : []));
+  const prefetchKey = hrefs.join(" ");
+
+  // 버튼 액션(예: 프로필 설정 · 수정)은 Link가 아니라 자동 prefetch되지 않으므로 직접 받아 둔다
+  useEffect(() => {
+    if (prefetchKey) prefetchKey.split(" ").forEach((href) => router.prefetch(href));
+  }, [prefetchKey, router]);
 
   const toNavAction = (action: Action) => ({
     label: action.label,

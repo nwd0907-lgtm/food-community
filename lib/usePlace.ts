@@ -1,6 +1,6 @@
 "use client";
 
-import { forgetBff, invalidateBff, prefetchBff, readBff, useBff, writeBff } from "./bff";
+import { forgetBff, invalidateBff, prefetchBff, readBff, useBff, warmBff, writeBff } from "./bff";
 import type { Place, PlaceSummary } from "./place";
 
 const LIST_URLS = ["/api/places", "/api/places?mine=1"] as const;
@@ -15,6 +15,11 @@ export function usePlaces({ mine = false } = {}) {
 /** 메인 목록을 화면 코드가 로드되는 즉시(하이드레이션 전) 받기 시작한다 */
 export function prefetchPlaces() {
   prefetchBff(LIST_URLS[0]);
+}
+
+/** 탭 이동 전에 목록을 미리 받아 둔다 (캐시가 없을 때만) */
+export function warmPlaces({ mine = false } = {}) {
+  warmBff(mine ? LIST_URLS[1] : LIST_URLS[0]);
 }
 
 /** GET /api/places/[id]. 목록에서 온 경우 목록 항목(상세와 같은 내용)으로 먼저 그리고 뒤에서 갱신한다 */
