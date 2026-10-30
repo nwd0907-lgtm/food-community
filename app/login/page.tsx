@@ -31,9 +31,9 @@ export default function LoginPage() {
           )}
         />
         <div className="absolute inset-x-0 top-[105px] flex h-12 items-center justify-center">
-          <Text variant="heading-lg" as="h1" className="text-[var(--color-text-brand)]">
-            FOOOD
-          </Text>
+          <h1>
+            <Image src="/brand/wordmark.png" alt="FOOOD" width={238} height={96} priority className="h-10 w-auto" />
+          </h1>
         </div>
       </div>
 

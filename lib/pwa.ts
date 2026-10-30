@@ -1,7 +1,10 @@
 // PWA 공용 값. scripts/generate-pwa-assets.mjs(이미지 생성)와 앱 메타데이터가 함께 쓴다.
 
-/** 로고 배경색: 매니페스트 background_color(안드로이드 스플래시)와 iOS 스플래시 배경 */
+/** 로고 배경색: 앱 아이콘 · 파비콘 배경 */
 export const brandBackground = "#E8DED0";
+
+/** 스플래시 배경: 매니페스트 background_color(안드로이드)와 iOS apple-touch-startup-image */
+export const splashBackground = "#FFFFFF";
 
 /** 브라우저 UI · 상태 표시줄 색: 앱 배경(--color-background-default, neutral-50)과 맞춘다 */
 export const appThemeColor = "#fbfaf7";

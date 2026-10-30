@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type ChangeEvent } from "react";
@@ -47,9 +48,9 @@ export function HomeDiscover() {
         )}
       >
         <div className="flex h-[31px] shrink-0 items-center">
-          <Text variant="heading-lg" as="h1" className="text-[var(--color-text-brand)]">
-            FOOOD
-          </Text>
+          <h1>
+            <Image src="/brand/wordmark.png" alt="FOOOD" width={238} height={96} priority className="h-7 w-auto" />
+          </h1>
         </div>
         {/* TextField size는 반응형 prop이 없어 모바일(lg)·데스크톱(md) 인스턴스를 CSS로 전환한다.
             cn은 클래스 충돌을 정리하지 않으므로 컴포넌트 기본 display와 겹치지 않게 감싼 요소에서 숨긴다 */}

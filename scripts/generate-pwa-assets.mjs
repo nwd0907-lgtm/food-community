@@ -1,11 +1,15 @@
-// PWA 아이콘 · 파비콘 · iOS 스플래시 생성: npm run pwa:assets
+// PWA 아이콘 · 파비콘 · iOS 스플래시 · 헤더 워드마크 생성: npm run pwa:assets
 // 원본: assets/brand/logo.png(F 심볼), assets/brand/logo-wordmark.png(Foood 워드마크)
 import { mkdir, writeFile } from "node:fs/promises";
 import sharp from "sharp";
-import { brandBackground, splashImageUrl, splashScreens } from "../lib/pwa.ts";
+import { brandBackground, splashBackground, splashImageUrl, splashScreens } from "../lib/pwa.ts";
 
-const [BG_R, BG_G, BG_B] = [1, 3, 5].map((i) => parseInt(brandBackground.slice(i, i + 2), 16));
-const BG = { r: BG_R, g: BG_G, b: BG_B }; // 로고 배경색
+const hexToRgb = (hex) => {
+  const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
+  return { r, g, b };
+};
+const BG = hexToRgb(brandBackground); // 로고 배경색
+const SPLASH_BG = hexToRgb(splashBackground);
 const MARK = { r: 135, g: 16, b: 26 }; // 로고 심볼색 #87101A
 
 /** 베이지 배경을 걷어내고 심볼만 투명 PNG로 추출. 초록 채널 차이로 안티앨리어싱 알파를 복원한다 */
@@ -57,9 +61,13 @@ function toIco(pngs) {
 async function main() {
   await mkdir("public/icons", { recursive: true });
   await mkdir("public/splash", { recursive: true });
+  await mkdir("public/brand", { recursive: true });
 
   const mark = await extractMark("assets/brand/logo.png", { left: 395, top: 205, width: 470, height: 826 });
   const wordmark = await extractMark("assets/brand/logo-wordmark.png", { left: 330, top: 207, width: 1112, height: 472 });
+
+  // 헤더 워드마크: 배경 없는 투명 PNG, 여백을 걷어내고 높이 96(표시 높이 32의 3배)
+  await sharp(wordmark).trim().resize({ height: 96 }).png().toFile("public/brand/wordmark.png");
 
   // 매니페스트 아이콘: any는 심볼 70%, maskable은 안전 영역(지름 80%) 안에 들도록 52%
   await writeFile("public/icons/icon-192.png", await composeIcon(mark, 192, 0.7));
@@ -76,12 +84,12 @@ async function main() {
   await writeFile("app/favicon.ico", toIco(favicons));
   await writeFile("app/icon.png", await composeIcon(mark, 96, 0.8, { radius: 20 }));
 
-  // iOS 스플래시: 배경색 + 중앙 워드마크(화면 짧은 변의 56%)
+  // iOS 스플래시: 흰 배경 + 중앙 워드마크(화면 짧은 변의 56%)
   for (const screen of splashScreens) {
     const w = screen.width * screen.dpr;
     const h = screen.height * screen.dpr;
     const logo = await sharp(wordmark).resize({ width: Math.round(Math.min(w, h) * 0.56) }).toBuffer();
-    await sharp({ create: { width: w, height: h, channels: 4, background: { ...BG, alpha: 1 } } })
+    await sharp({ create: { width: w, height: h, channels: 4, background: { ...SPLASH_BG, alpha: 1 } } })
       .composite([{ input: logo, gravity: "center" }])
       .png({ compressionLevel: 9, palette: true })
       .toFile(`public${splashImageUrl(screen)}`);
