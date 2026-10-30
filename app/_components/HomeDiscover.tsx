@@ -47,7 +47,7 @@ export function HomeDiscover() {
     type: "text",
     inputMode: "search",
     leadingIcon: "search",
-    placeholder: "맛집 이름·동네를 검색해보세요",
+    placeholder: "숨은맛집은 Foood에서",
     value: query,
     onChange: (event: ChangeEvent<HTMLInputElement>) => setQuery(event.target.value),
   } as const;

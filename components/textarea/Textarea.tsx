@@ -55,8 +55,9 @@ export function Textarea({
         )}
       </Text>
       <div className={cn("h-24 rounded-xl p-3", fieldBoxClasses(state))}>
+        {/* 입력 글자 · 플레이스홀더는 14px(body-md) */}
         <Text
-          variant="body-lg"
+          variant="body-md"
           as="textarea"
           id={textareaId}
           disabled={disabled}

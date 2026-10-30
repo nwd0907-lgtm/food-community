@@ -25,6 +25,9 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: appThemeColor,
+  // 입력 글자가 14px(16px 미만)라 iOS가 입력창을 누를 때 화면을 자동 확대한다. 이를 막는다
+  // (iOS는 이 값과 상관없이 손가락 확대를 허용한다. 안드로이드는 손가락 확대도 막힌다)
+  maximumScale: 1,
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

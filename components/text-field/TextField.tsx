@@ -34,7 +34,7 @@ export type TextFieldProps = {
   hideLabel?: boolean;
   /** pill: 완전한 라운드(검색 필드) */
   shape?: "default" | "pill";
-  /** brand: 테두리(2px) · 아이콘을 브랜드색으로 (메인 검색) */
+  /** brand: 테두리(1px) · 아이콘 · 플레이스홀더를 브랜드색으로 (메인 검색) */
   tone?: FieldTone;
   /** 포커스 스타일 강제 표시(문서·시안 비교용). 실제 포커스 시에는 자동 적용 */
   focused?: boolean;
@@ -90,8 +90,9 @@ export function TextField({
         )}
       >
         {leadingIcon && <Icon name={leadingIcon} size={fieldIconSize[size]} className={iconColor} />}
+        {/* 입력 글자 · 플레이스홀더는 14px(body-md) */}
         <Text
-          variant="body-lg"
+          variant="body-md"
           as="input"
           id={inputId}
           type={type}
@@ -100,7 +101,10 @@ export function TextField({
           aria-required={required || undefined}
           aria-describedby={helper ? helperId : undefined}
           className={cn(
-            "min-w-0 flex-1 bg-transparent outline-none placeholder:text-[var(--color-text-disabled)]",
+            "min-w-0 flex-1 bg-transparent outline-none",
+            tone === "brand"
+              ? "placeholder:text-[var(--color-text-brand)]"
+              : "placeholder:text-[var(--color-text-disabled)]",
             "disabled:cursor-not-allowed disabled:text-[var(--color-text-disabled)]",
           )}
           {...props}

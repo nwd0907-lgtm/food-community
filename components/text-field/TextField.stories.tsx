@@ -125,7 +125,7 @@ export const Search: Story = {
     size: "lg",
     leadingIcon: "search",
     helperText: undefined,
-    placeholder: "맛집 이름·동네를 검색해보세요",
+    placeholder: "숨은맛집은 Foood에서",
   },
   play: async ({ canvas }) => {
     // 레이블은 보이지 않지만 접근성 이름으로 남는다
@@ -134,11 +134,11 @@ export const Search: Story = {
   },
 };
 
-/** 메인 검색(브랜드): 테두리 2px · 검색 아이콘을 브랜드 버튼과 같은 색으로 */
+/** 메인 검색(브랜드): 테두리 1px · 검색 아이콘 · 플레이스홀더를 브랜드 버튼과 같은 색으로 */
 export const SearchBrand: Story = {
   args: { ...Search.args, tone: "brand" },
   play: async ({ canvas }) => {
     const box = canvas.getByRole("textbox").parentElement!;
-    await expect(getComputedStyle(box).boxShadow).toContain("2px");
+    await expect(getComputedStyle(box).boxShadow).toContain("1px");
   },
 };
