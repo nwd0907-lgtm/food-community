@@ -18,15 +18,16 @@ export const fieldHeightClasses: Record<FieldSize, string> = { sm: "h-8", md: "h
 
 export const fieldIconSize = { sm: 16, md: 20, lg: 20 } as const;
 
+// 포커스 테두리: 1px, 브랜드 버튼(primary) 배경과 같은 background-brand 색
 const stateClasses: Record<FieldState, string> = {
   default: "bg-[var(--color-background-surface)] shadow-[inset_0_0_0_1px_var(--color-border-default)]",
-  focused: "bg-[var(--color-background-surface)] shadow-[inset_0_0_0_2px_var(--color-border-brand)]",
+  focused: "bg-[var(--color-background-surface)] shadow-[inset_0_0_0_1px_var(--color-background-brand)]",
   disabled: "bg-[var(--color-background-disabled)] shadow-[inset_0_0_0_1px_var(--color-border-default)]",
   error: "bg-[var(--color-background-surface)] shadow-[inset_0_0_0_1.5px_var(--color-border-error)]",
 };
 
 /** 실제 포커스(focus-within)에도 focused 스타일이 나오도록 default/error 상태에 추가 */
-const focusWithin = "focus-within:shadow-[inset_0_0_0_2px_var(--color-border-brand)]";
+const focusWithin = "focus-within:shadow-[inset_0_0_0_1px_var(--color-background-brand)]";
 
 export function fieldBoxClasses(state: FieldState) {
   return cn(stateClasses[state], (state === "default" || state === "error") && focusWithin);
