@@ -92,3 +92,32 @@ export const PaymentSummary: Story = {
     await expect(dialog.querySelector("div.px-6")).toBeNull();
   },
 };
+
+/** design.pen 17 결제 취소 확인 (마이페이지 결제 내역 "취소하기"): 좌우 20 · 간격 8, 닫기(secondary) | 취소하기(destructive) */
+export const PaymentCancel: Story = {
+  args: {
+    title: "결제를 취소할까요?",
+    description: "취소하면 신청한 자리가 다시 열리고, 30,000원이 결제 수단으로 환불돼요.",
+    contentClassName: "gap-2 px-5",
+  },
+  render: (args) => (
+    <BottomSheet {...args}>
+      <div className="flex gap-2 pt-4">
+        <Button variant="secondary" fullWidth onClick={args.onClose}>
+          닫기
+        </Button>
+        <Button variant="destructive" fullWidth>
+          취소하기
+        </Button>
+      </div>
+    </BottomSheet>
+  ),
+  play: async ({ args, canvasElement, userEvent }) => {
+    const body = within(canvasElement.ownerDocument.body);
+    const dialog = body.getByRole("dialog", { name: "결제를 취소할까요?" });
+    await expect(within(dialog).getByText(/30,000원이 결제 수단으로 환불돼요/)).toBeVisible();
+    await expect(within(dialog).getByRole("button", { name: "취소하기" })).toBeEnabled();
+    await userEvent.click(within(dialog).getByRole("button", { name: "닫기" }));
+    await expect(args.onClose).toHaveBeenCalled();
+  },
+};

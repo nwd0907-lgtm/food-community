@@ -1,4 +1,4 @@
--- 미적용: 원격 적용 후 이 줄을 "Supabase MCP apply_migration으로 원격에 적용됨 (version ...)"으로 바꾼다
+-- Supabase MCP apply_migration으로 원격에 적용됨 (2026-11-10, food-community)
 -- 결제 원장 금액 부호: 결제(PAID) +, 취소(CANCELLED) −. transaction_key별 sum(amount) = 순결제액
 -- 규칙 SSOT: .claude/rules/payment.md
 

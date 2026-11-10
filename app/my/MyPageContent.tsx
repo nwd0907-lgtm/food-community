@@ -14,20 +14,21 @@ import { TabNavigation } from "@/components/navigation/TabNavigation";
 import { Skeleton } from "@/components/skeleton/Skeleton";
 import { Toast } from "@/components/toast/Toast";
 import { Text } from "@/components/typography/Text";
+import type { PaymentHistoryItem } from "@/lib/payment";
 import type { PlaceSummary } from "@/lib/place";
-import type { Payment, PaymentProduct } from "@/lib/payment-mock";
 import { formatPrice } from "@/lib/product";
 import { DEFAULT_AVATAR } from "@/lib/profile";
 import { clearBff } from "@/lib/bff";
 import { prepareHero } from "../_components/HeroReady";
 import { removePlaceFromCache, usePlaces } from "@/lib/usePlace";
 import { useProfile } from "@/lib/useProfile";
-import { cancelMockPayment, usePayments } from "@/lib/usePayments";
+import { cancelPayment, usePayments } from "@/lib/usePayments";
 import { PaymentHistory } from "./PaymentHistory";
 
 // design.pen 07 마이페이지 · 내 기록: 프로필 요약(아바타 48 · 닉네임 · 이메일 · 로그아웃) · 탭(내 맛집 / 결제 내역 / 취소 내역) · 내 글 카드 그리드
 // design.pen 15 결제 내역 · 16 취소 내역: 탭은 주소(?tab=payments | canceled)에 남겨, 결제 완료 화면 "결제 내역 보기"와 새로고침에서 같은 탭을 연다
-// design.pen 17 결제 취소 확인: "취소하기" → 바텀시트(닫기 / 취소하기) → 결제 내역에서 취소 내역으로 옮긴다
+// 결제 · 취소 내역은 BFF GET /api/payments. "취소하기" → design.pen 17 확인 바텀시트 → POST /api/payments/[paymentId]/cancel(전액)
+//   성공하면 그 건이 취소 내역으로 옮겨지고(서버 응답으로 캐시 갱신 + 재조회) 완료 토스트, 실패하면 시트 안에 오류 문구
 // 프로필 요약은 BFF GET /api/profile, 내 글은 GET /api/places?mine=1
 // 내 글 카드 우상단 X → 확인 모달 → DELETE /api/places/[id] (소프트 삭제) 후 목록에서 뺀다
 // 로그아웃: 서버 응답을 기다리지 않고 바로 로그인 화면으로 간다. 세션 종료(쿠키 삭제)는 뒤에서 끝난다.
@@ -46,7 +47,10 @@ export function MyPageContent() {
   const searchParams = useSearchParams();
   const tab = toTab(searchParams.get("tab"));
   const payments = usePayments();
-  const [canceling, setCanceling] = useState<{ payment: Payment; product: PaymentProduct }>();
+  const [cancelTarget, setCancelTarget] = useState<PaymentHistoryItem>();
+  const [cancelling, setCancelling] = useState(false);
+  const [cancelError, setCancelError] = useState<string>();
+  const [cancelDone, setCancelDone] = useState(false);
   const { profile } = useProfile();
   const { places } = usePlaces({ mine: true });
   const [deleting, setDeleting] = useState<PlaceSummary>();
@@ -73,12 +77,6 @@ export function MyPageContent() {
     window.history.replaceState(null, "", next === "mine" ? "/my" : `/my?tab=${next}`);
   };
 
-  // TODO(결제 연동): BFF POST /api/payments/[id]/cancel로 PG 취소 후 반영. 실패하면 결제 내역에 두고 오류 토스트
-  const cancelPayment = () => {
-    if (canceling) cancelMockPayment(canceling.payment.id);
-    setCanceling(undefined);
-  };
-
   const deletePlace = async () => {
     const target = deleting;
     if (!target) return;
@@ -97,6 +95,27 @@ export function MyPageContent() {
     } catch {
       setDeleteError("삭제하지 못했어요. 다시 시도해 주세요.");
     }
+  };
+
+  const closeCancel = () => {
+    if (cancelling) return;
+    setCancelTarget(undefined);
+    setCancelError(undefined);
+  };
+
+  const confirmCancel = async () => {
+    if (!cancelTarget) return;
+    setCancelling(true);
+    setCancelError(undefined);
+    const result = await cancelPayment(cancelTarget.paymentId);
+    setCancelling(false);
+    if (result.ok) {
+      setCancelTarget(undefined);
+      setCancelDone(true);
+      return;
+    }
+    if (result.status === 401) return router.replace("/login");
+    setCancelError(result.message);
   };
 
   return (
@@ -144,11 +163,21 @@ export function MyPageContent() {
       <TabNavigation label="마이페이지 탭" items={[...TABS]} value={tab} onChange={changeTab} />
 
       {deleteError && <Toast type="error" message={deleteError} onClose={() => setDeleteError(undefined)} />}
+      {cancelDone && <Toast type="success" message="결제를 취소했어요." onClose={() => setCancelDone(false)} />}
 
       {tab === "payments" ? (
-        <PaymentHistory kind="paid" payments={payments.paid} onCancel={(payment, product) => setCanceling({ payment, product })} />
+        <PaymentHistory
+          kind="paid"
+          payments={payments.paid}
+          failed={payments.status === "failed"}
+          onCancel={(payment) => {
+            setCancelDone(false);
+            setCancelError(undefined);
+            setCancelTarget(payment);
+          }}
+        />
       ) : tab === "canceled" ? (
-        <PaymentHistory kind="canceled" payments={payments.canceled} />
+        <PaymentHistory kind="canceled" payments={payments.canceled} failed={payments.status === "failed"} />
       ) : places && places.length === 0 ? (
         <Empty visual="utensils" title="아직 등록한 맛집이 없어요" description="다녀온 숨은 맛집을 소개해 주세요." />
       ) : (
@@ -187,6 +216,25 @@ export function MyPageContent() {
         </ul>
       )}
 
+      {/* design.pen 17 결제 취소 확인: 제목 · 설명(환불 금액) · 닫기(secondary) | 취소하기(destructive), 좌우 20 */}
+      <BottomSheet
+        open={!!cancelTarget}
+        onClose={closeCancel}
+        title="결제를 취소할까요?"
+        description={`취소하면 신청한 자리가 다시 열리고, ${formatPrice(cancelTarget?.amount ?? 0)}이 결제 수단으로 환불돼요.`}
+        contentClassName="mx-auto w-full max-w-xl gap-2 px-5"
+      >
+        {cancelError && <Toast type="error" message={cancelError} className="mt-[var(--spacing-8)]" />}
+        <div className="flex gap-[var(--spacing-8)] pt-[var(--spacing-16)]">
+          <Button variant="secondary" fullWidth disabled={cancelling} onClick={closeCancel}>
+            닫기
+          </Button>
+          <Button variant="destructive" fullWidth loading={cancelling} onClick={confirmCancel}>
+            취소하기
+          </Button>
+        </div>
+      </BottomSheet>
+
       <Modal
         open={!!deleting}
         onClose={() => setDeleting(undefined)}
@@ -196,23 +244,6 @@ export function MyPageContent() {
       >
         {`‘${deleting?.title ?? ""}’ 글이 목록과 상세에서 사라져요.`}
       </Modal>
-
-      <BottomSheet
-        open={!!canceling}
-        onClose={() => setCanceling(undefined)}
-        title="결제를 취소할까요?"
-        description={`취소하면 신청한 자리가 다시 열리고, ${formatPrice(canceling?.payment.amount ?? 0)}이 결제 수단으로 환불돼요.`}
-        contentClassName="mx-auto w-full max-w-xl gap-[var(--spacing-8)] px-5 pt-[var(--spacing-8)]"
-      >
-        <div className="flex gap-[var(--spacing-8)] pt-[var(--spacing-8)]">
-          <Button variant="secondary" className="flex-1" onClick={() => setCanceling(undefined)}>
-            닫기
-          </Button>
-          <Button variant="destructive" className="flex-1" onClick={cancelPayment}>
-            취소하기
-          </Button>
-        </div>
-      </BottomSheet>
     </>
   );
 }

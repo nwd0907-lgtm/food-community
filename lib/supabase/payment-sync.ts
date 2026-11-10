@@ -119,3 +119,96 @@ async function countActivePayments(admin: ReturnType<typeof createAdminClient>, 
   if (error) throw error;
   return data.reduce((n, row) => n + (row.type === PAYMENT_TYPE.paid ? 1 : -1), 0);
 }
+
+// ─── 결제 취소 (.claude/rules/payment.md § 7 취소 API · § 8 취소 웹훅) ───────────────────────────────
+
+export type CancelSyncSuccess = {
+  ok: true;
+  recorded: PaymentRow;
+  payment: Payment.CancelledPayment;
+  /** 기록 시점 상품 행 (스냅샷과 같은 값) */
+  product: ProductRow;
+};
+
+/** 같은 transaction_key의 PAID 원장 행. 없으면 null (우리 원장에 기록된 결제가 아님) */
+export async function findPaidRow(paymentId: string) {
+  const { data, error } = await createAdminClient()
+    .from("payment")
+    .select("*")
+    .eq("transaction_key", paymentId)
+    .eq("type", PAYMENT_TYPE.paid)
+    .maybeSingle();
+  if (error) throw error;
+  return data;
+}
+
+/**
+ * 포트원에서 취소된 결제를 원장에 CANCELLED로 기록. 취소 API(취소 후 재조회)와 웹훅이 같이 쓴다
+ * - 포트원 상태가 CANCELLED가 아니면 IGNORE (부분 취소 · 취소 대기 포함)
+ * - 상점 · 채널이 다르면 IGNORE
+ * - 기록된 PAID가 없으면 IGNORE (원장 순액 0 유지)
+ * - 취소 금액(amount.cancelled) ≠ PAID 금액이면 REFUND (운영자 확인)
+ * - record_payment(CANCELLED, −PAID.amount, PAID 행의 상품 · 사용자, 스냅샷 = 조회 응답 + 현재 상품 행). (transaction_key, CANCELLED) 멱등
+ * @param paid 호출 쪽에서 이미 읽은 PAID 행 (없으면 여기서 읽는다)
+ */
+export async function syncCancelledPayment(
+  paymentId: string,
+  paid?: PaymentRow,
+): Promise<CancelSyncSuccess | SyncFailure> {
+  const config = portoneConfig();
+  const admin = createAdminClient();
+
+  // 1) 포트원 단건 조회 (웹훅 본문 · 브라우저 값은 믿지 않는다)
+  let payment;
+  try {
+    payment = await createPortOnePaymentClient().getPayment({ paymentId });
+  } catch (error) {
+    if (error instanceof Payment.PaymentError && error.data.type === "PAYMENT_NOT_FOUND")
+      return failure("NOT_FOUND", 404, "결제 내역을 찾을 수 없어요.");
+    console.error("[payments/cancel-sync] 포트원 조회 실패", paymentId, error);
+    return failure("RETRYABLE", 502, "취소 확인에 실패했어요. 잠시 후 다시 시도해 주세요.");
+  }
+
+  // 2) 상태 · 상점 · 채널
+  if (payment.status !== "CANCELLED") return failure("IGNORE", 409, "결제가 취소되지 않았어요.");
+  if (payment.storeId !== config.storeId || payment.channel?.key !== config.channelKey)
+    return failure("IGNORE", 400, "결제 정보가 올바르지 않아요.");
+
+  // 3) 우리 원장의 PAID 행
+  let paidRow = paid ?? null;
+  if (!paidRow) {
+    try {
+      paidRow = await findPaidRow(paymentId);
+    } catch {
+      return failure("RETRYABLE", 500, "취소 확인에 실패했어요. 다시 시도해 주세요.");
+    }
+  }
+  if (!paidRow) return failure("IGNORE", 404, "기록된 결제가 없어요.");
+
+  // 4) 전액 취소만 지원: 포트원 취소 금액 = 원장 PAID 금액
+  const paidAmount = Number(paidRow.amount);
+  if (payment.amount.cancelled !== paidAmount) return failure("REFUND", 409, "취소 금액이 결제 금액과 달라요.");
+
+  // 5) 스냅샷용 현재 상품 행 (비공개로 바뀌었어도 취소 기록은 남긴다)
+  const { data: product, error: productError } = await admin
+    .from("product")
+    .select("*")
+    .eq("id", paidRow.product_id)
+    .maybeSingle();
+  if (productError || !product) return failure("RETRYABLE", 500, "취소 기록에 실패했어요. 다시 시도해 주세요.");
+
+  const { data: recorded, error: recordError } = await admin.rpc("record_payment", {
+    p_transaction_key: paymentId,
+    p_type: PAYMENT_TYPE.cancelled,
+    p_amount: signedAmount(PAYMENT_TYPE.cancelled, paidAmount),
+    p_product_id: paidRow.product_id,
+    p_user_id: paidRow.user_id,
+    p_snapshot_payment: payment as unknown as Json,
+    p_snapshot_product: product as unknown as Json,
+  });
+  if (recordError || !recorded) {
+    console.error("[payments/cancel-sync] record_payment 실패", paymentId, recordError);
+    return failure("RETRYABLE", 500, "취소 기록에 실패했어요. 고객센터로 문의해 주세요.");
+  }
+  return { ok: true, recorded, payment, product };
+}

@@ -10,6 +10,7 @@ import { invalidateBff, writeBff } from "@/lib/bff";
 import { cn } from "@/lib/cn";
 import type { PaymentCompleteResponse, PaymentError } from "@/lib/payment";
 import { formatPrice, formatSchedule, type Product } from "@/lib/product";
+import { invalidatePayments } from "@/lib/usePayments";
 import { AppTopNavigation } from "../../../_components/AppTopNavigation";
 import { formContainer } from "../../../_components/layout";
 import { ProductInfoList } from "../../_components/ProductInfoList";
@@ -143,8 +144,9 @@ export function PaymentComplete({ id }: { id: string }) {
   );
 }
 
-/** 결제로 참여 인원이 바뀌었으니 상세는 서버 값으로 덮고, 목록은 다음 진입 때 다시 받는다 */
+/** 결제로 참여 인원이 바뀌었으니 상세는 서버 값으로 덮고, 목록 · 결제 내역은 다음 진입 때 다시 받는다 */
 function syncProductCache(product: Product) {
   writeBff(`/api/products/${encodeURIComponent(product.id)}`, product);
   invalidateBff("/api/products");
+  invalidatePayments();
 }

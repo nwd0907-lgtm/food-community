@@ -92,9 +92,9 @@
 | `FORBIDDEN` | 남의 결제 | 403 | (해당 없음) |
 
 - `POST /api/payments/complete { paymentId }` (로그인 필수): 성공한 결제만 "결제 완료", `?code` 있으면 실패 화면
-- 취소 대상은 결제 취소 기능 전까지 운영자가 포트원 콘솔에서 취소한다
+- 취소 대상(`REFUND`·`duplicate`·정원 초과)은 운영자가 포트원 콘솔에서 취소한다. 콘솔 취소도 8장 웹훅으로 원장에 `CANCELLED`가 남는다
 
-## 6. 결제 웹훅 `POST /api/payments/webhook` (구현됨: 결제 승인)
+## 6. 결제 웹훅 `POST /api/payments/webhook` (구현됨: 결제 승인·취소)
 - 포트원 콘솔 웹훅 URL `https://<도메인>/api/payments/webhook`, 버전 `2024-04-25`
 - 로그인 세션 없음. 사용자는 `customData.userId`
 - 처리 순서
@@ -106,19 +106,22 @@
 - `Transaction.Paid` → `syncPaidPayment(paymentId)` (5장)
 - 응답: 서명 실패 400, `RETRYABLE` 500, 그 외 모두 200 (재시도 폭주 방지)
 
-## 7. 결제 취소 API `POST /api/payments/{paymentId}/cancel` (미구현)
-- 로그인 사용자 본인 결제만
-- 조건: 해당 키의 `PAID` 있고 `CANCELLED` 없음, 행사 시작(`event_at`) 전 (시작 전까지 전액 환불)
-- `PaymentClient.cancelPayment`(전액) → 성공 후 재조회해 `status === "CANCELLED"` 확인
-- `record_payment(type='CANCELLED', amount=−취소 금액, 스냅샷=취소 후 조회 응답 + 그 시점 상품 행)`. 기존 `PAID` 행은 그대로
-- 포트원 취소 실패 시 원장에 쓰지 않고 오류 안내
+## 7. 결제 취소 API `POST /api/payments/{paymentId}/cancel` (구현됨, `app/api/payments/[paymentId]/cancel/route.ts`)
+- 로그인 사용자 본인 결제만 (로그인 클라이언트로 원장 조회, RLS로 남의 결제는 404)
+- 조건: 해당 키의 `PAID` 있고 `CANCELLED` 없음(있으면 409), 행사 시작(`event_at`) 전 (시작 후 409). 일정은 현재 상품 값, 안 보이면 `PAID` 스냅샷 값
+- `PaymentClient.cancelPayment`(전액, `requester: "CUSTOMER"`, `currentCancellableAmount = PAID.amount`)
+  - `PAYMENT_ALREADY_CANCELLED`(콘솔 등에서 이미 취소) → 실패 아님, 기록 단계로
+  - 그 외 실패 → 원장에 쓰지 않고 오류 안내 (404 / 409 / 502)
+- 성공 후 `syncCancelledPayment(paymentId, PAID 행)` (8장과 같은 함수): 재조회 `status === "CANCELLED"` 확인 → `record_payment(type='CANCELLED', amount=−PAID.amount, 스냅샷=취소 후 조회 응답 + 그 시점 상품 행)`. 기존 `PAID` 행은 그대로
+- 포트원은 취소됐는데 기록 실패(`RETRYABLE`) → 502 "취소는 접수됐어요…", 웹훅이 다시 기록
+- 응답 `PaymentCancelResponse { paymentId, amount(양수), cancelledAt, product(현재 참여 인원) }`
 
-## 8. 결제 취소 웹훅 (미구현, 6장 웹훅 라우트에 추가)
-- `Transaction.Cancelled` → `syncCancelledPayment(paymentId)`
+## 8. 결제 취소 웹훅 (구현됨, 6장 웹훅 라우트)
+- `Transaction.Cancelled` → `syncCancelledPayment(paymentId)` (`lib/supabase/payment-sync.ts`)
   1. 포트원 단건 조회, `status === "CANCELLED"` 아니면 200 무시
   2. `storeId`, `channel.key` = env
   3. 같은 `transaction_key`의 `PAID` 원장 행 조회. 없으면 200 + 로그 (기록된 결제 없음 → 원장 순액 0 유지)
-  4. 취소 금액(`payment.amount.cancelled`) = `PAID.amount`인지 확인. 다르면 200 + 경고 로그
+  4. 취소 금액(`payment.amount.cancelled`) = `PAID.amount`인지 확인. 다르면 `REFUND` → 200 + 경고 로그
   5. `record_payment(type='CANCELLED', amount=−PAID.amount, product_id·user_id = PAID 행 값, 스냅샷 = 조회 응답 + 현재 상품 행)`
 - 취소 API(7장)와 웹훅이 겹쳐도 `(transaction_key, 'CANCELLED')` 멱등으로 한 행
 - `Transaction.PartialCancelled` → 지원 안 함. 200 + 경고 로그 (운영자 확인)
@@ -126,14 +129,23 @@
 
 ## 9. 화면·캐시
 - 결제·취소 뒤 상품 상세 캐시는 서버 응답으로 덮고(`writeBff`), 목록은 `invalidateBff`
-- 결제 내역(마이페이지)은 `GET /api/payments`(본인 원장 + 스냅샷). 현재 목업(`lib/payment-mock.ts`), 연동 시 삭제
+- 결제 내역(마이페이지): `GET /api/payments` (`lib/usePayments.ts`, `app/my/PaymentHistory.tsx`)
+  - 로그인 사용자 클라이언트로 조회 (RLS로 본인 원장·스냅샷만, service_role 금지)
+  - `transaction_key`로 묶어 한 건: `PAID` 행 + `CANCELLED` 행 있으면 취소 내역
+  - 상품명·일정·장소·썸네일은 `PAID` 스냅샷, 결제일·취소일은 각 행 스냅샷의 `paidAt`·`cancelledAt`(없으면 `created_at`), 참여 인원만 현재 값
+  - 참여자는 인원 텍스트로 표시 (다른 사용자 결제는 RLS로 안 보임)
+  - 결제 완료 시 `invalidatePayments()`
+  - "취소하기" → design.pen 17 확인 바텀시트(닫기 | 취소하기, 환불 금액 안내) → `cancelPayment()` (`lib/usePayments.ts`)
+    - 성공: 결제 내역 캐시에서 그 건을 `CANCELLED`·`cancelledAt`으로 바로 옮기고, 상품 상세 `writeBff`(응답 `product`), 상품 목록·결제 내역 `invalidateBff` → 서버 값으로 최종 갱신. 성공 토스트
+    - 실패: 시트 안에 서버 문구, 원장 변화 없음
 - 화면 금액은 절댓값으로 `formatPrice`, 결제/취소 구분은 `type`. 일시는 `formatSchedule` (`lib/product.ts`)
 
 ## 10. 파일 지도
 - 타입·상수: `lib/payment.ts` (`PAYMENT_TYPE`, `PAYMENT_CURRENCY`, `PAYMENT_PAY_METHOD`, `SEATS_PER_PERSON`)
 - 결제창: `lib/requestPayment.ts`, `app/products/[id]/ProductPurchase.tsx`
 - 완료 화면: `app/products/[id]/complete/PaymentComplete.tsx`
-- BFF: `app/api/payments/{prepare,complete,webhook}/route.ts`
+- 결제·취소 내역 + 취소 시트: `app/my/MyPageContent.tsx`, `app/my/PaymentHistory.tsx`, `lib/usePayments.ts`
+- BFF: `app/api/payments/route.ts`(내역), `app/api/payments/{prepare,complete,webhook}/route.ts`, `app/api/payments/[paymentId]/cancel/route.ts`
 - 서버 유틸: `lib/portone.ts`, `lib/supabase/{admin,payment,payment-sync,product}.ts`
 - DB: `supabase/migrations/20261106040742_payment_append_only_ledger.sql`, `20261110000000_payment_signed_amount.sql`
 - 스키마 변경 시 마이그레이션 추가 + `lib/supabase/database.types.ts` 갱신
