@@ -6,7 +6,7 @@ import { Text } from "@/components/typography/Text";
 
 export type Photo = { src: string; alt: string };
 
-// design.pen 02 상세 사진 갤러리: 480 높이, 하단 딤드 그라디언트, 좌하단 가게명, 우하단 "현재 / 전체" 배지
+// design.pen 02 상세 · 12 상품 상세 사진 갤러리: 480 높이, 하단 딤드 그라디언트, 좌하단 이름(길면 좌우 16 안에서 줄바꿈), 우하단 "현재 / 전체" 배지
 // 가로 스와이프(scroll-snap)로 넘기고, 배지는 현재 보이는 사진 순번을 따른다
 export function PhotoGallery({ name, photos }: { name: string; photos: Photo[] }) {
   const [index, setIndex] = useState(0);
@@ -43,7 +43,7 @@ export function PhotoGallery({ name, photos }: { name: string; photos: Photo[] }
         variant="heading-lg"
         as="p"
         aria-hidden
-        className="pointer-events-none absolute bottom-[37px] left-[var(--spacing-16)] text-[var(--color-text-on-strong)]"
+        className="pointer-events-none absolute right-[var(--spacing-16)] bottom-[37px] left-[var(--spacing-16)] text-[var(--color-text-on-strong)]"
       >
         {name}
       </Text>

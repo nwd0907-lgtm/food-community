@@ -7,6 +7,7 @@ import { useOverlay } from "@/lib/useOverlay";
 import { Text } from "../typography/Text";
 
 // design.pen bottom-sheet/default: 상단 드래그 핸들 + 콘텐츠, 배경 스크림 탭 시 선택 없이 닫힘
+// contentClassName: 콘텐츠 여백·간격(기본 좌우 24 · 간격 12)을 통째로 바꾼다. design.pen 13 결제 · 17 결제 취소는 좌우 20
 export type BottomSheetProps = {
   open: boolean;
   onClose: () => void;
@@ -14,9 +15,11 @@ export type BottomSheetProps = {
   description?: string;
   children?: ReactNode;
   className?: string;
+  /** 지정하면 기본 콘텐츠 여백·간격 "gap-3 px-6"을 대신한다 */
+  contentClassName?: string;
 };
 
-export function BottomSheet({ open, onClose, title, description, children, className }: BottomSheetProps) {
+export function BottomSheet({ open, onClose, title, description, children, className, contentClassName }: BottomSheetProps) {
   const panelRef = useOverlay<HTMLDivElement>(open, onClose);
   const titleId = useId();
   if (!open || typeof document === "undefined") return null;
@@ -43,7 +46,7 @@ export function BottomSheet({ open, onClose, title, description, children, class
         <div className="flex h-8 items-center justify-center">
           <span className="h-1 w-10 rounded-sm bg-[var(--color-border-strong)]" />
         </div>
-        <div className="flex flex-col gap-3 px-6">
+        <div className={cn("flex flex-col", contentClassName ?? "gap-3 px-6")}>
           {title && (
             <Text variant="heading-sm" id={titleId}>
               {title}

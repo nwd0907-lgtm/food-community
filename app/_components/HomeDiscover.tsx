@@ -13,14 +13,20 @@ import { TextField } from "@/components/text-field/TextField";
 import { Text } from "@/components/typography/Text";
 import { cn } from "@/lib/cn";
 import type { PlaceSummary } from "@/lib/place";
+import { toProductBanner } from "@/lib/product";
 import { prefetchPlaces, usePlaces } from "@/lib/usePlace";
+import { prefetchProducts, useProducts } from "@/lib/useProduct";
+import { HomeBanner } from "./HomeBanner";
 import { gridContainer } from "./layout";
 
-// design.pen 01 메인 · 발견: 브랜드 헤더(워드마크 + 검색, 데스크톱은 + 마이) · 피드(제목 + 카드, 로딩 중 카드 스켈레톤) · 등록 플로팅 버튼
+// design.pen 01 메인 · 발견: 브랜드 헤더(워드마크 + 검색, 데스크톱은 + 마이) · 강연·모임 배너 · 피드(제목 + 카드, 로딩 중 카드 스켈레톤) · 등록 플로팅 버튼
 // 목록은 BFF GET /api/places (최신순, 캐시 후 갱신). 검색은 받은 목록 안에서 이름·내용으로 거른다
 // 입력은 바로 반영하고, 카드 목록 필터링은 useDeferredValue로 뒤로 미뤄 타이핑이 끊기지 않게 한다
 // 메인 목록은 앱 첫 화면이라, 하이드레이션을 기다리지 않고 이 모듈이 로드될 때 바로 요청한다
-if (typeof window !== "undefined") prefetchPlaces();
+if (typeof window !== "undefined") {
+  prefetchPlaces();
+  prefetchProducts();
+}
 
 const GRID = "grid grid-cols-1 gap-x-[var(--spacing-16)] gap-y-[var(--spacing-20)] sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4";
 /** 그리드 열 수(1 → 2 → 3 → 4)에 맞춘 카드 이미지 표시 폭 */
@@ -29,6 +35,9 @@ const CARD_SIZES = "(max-width: 639px) 100vw, (max-width: 1023px) 50vw, (max-wid
 export function HomeDiscover() {
   const router = useRouter();
   const { places, status } = usePlaces();
+  // 상단 배너: BFF GET /api/products (공개 상품). 공개 상품이 없거나 받지 못하면 배너 자리를 숨긴다 (PRD)
+  const { products } = useProducts();
+  const banners = useMemo(() => products?.map(toProductBanner) ?? [], [products]);
   const [query, setQuery] = useState("");
   const keyword = query.trim();
   const deferredKeyword = useDeferredValue(keyword);
@@ -88,6 +97,9 @@ export function HomeDiscover() {
           </div>
         </header>
       </div>
+
+      {/* 헤더 아래 바로 붙고(고정 헤더 밑으로 스크롤된다) 아래 16 뒤에 피드가 온다 */}
+      <HomeBanner banners={banners} />
 
       <main
         className={cn(

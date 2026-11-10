@@ -52,3 +52,9 @@
 - 마이 그리드: 2 → 3(md) → 4(lg)
 - 1280 초과는 여백 처리, 헤더·FAB도 1280 기준 정렬
 - 바텀 내비는 `lg` 미만만
+
+# Payment
+
+- 결제·취소·웹훅·결제 내역 규칙 SSOT: `.claude/rules/payment.md` (결제 관련 작업 전 반드시 확인, 규칙 변경 시 이 문서부터 수정)
+- PortOne V2, 포트원 코드 작성 전 포트원 MCP로 예시·스펙 확인
+- `payment`·`payment_snaphost`는 append-only, 쓰기는 BFF의 `record_payment` RPC로만
